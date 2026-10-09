@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Thu Phí Chung Cư Blue Moon (BMFM)</title>
+    <!-- Phông chữ Google Fonts chuẩn hiện đại -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js biểu đồ thống kê -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- File CSS hệ thống -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- ============================================================ -->
+        <!-- THANH ĐIỀU HƯỚNG BÊN TRÁI (SIDEBAR) -->
+        <!-- ============================================================ -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-badge">🏢</div>
+                <div class="brand-info">
+                    <h1>BLUE MOON</h1>
+                    <span>FEE MANAGEMENT (BMFM)</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-menu">
+                <div class="menu-category">DÀNH CHO CƯ DÂN / KHÁCH</div>
+                <a class="nav-item" data-tab="tab-resident-portal" id="nav-resident-portal">
+                    <span class="icon">📱</span>
+                    <span>Cổng Cư Dân & Đóng Tiền</span>
+                </a>
+
+                <div class="menu-category" data-role-section="admin-bqt">TỔNG QUAN BAN QUẢN LÝ</div>
+                <a class="nav-item active" data-tab="tab-dashboard">
+                    <span class="icon">📊</span>
+                    <span>Bảng điều khiển (Dashboard)</span>
+                </a>
+
+                <div class="menu-category" data-role-section="admin-bqt">QUẢN LÝ DÂN CƯ & CĂN HỘ</div>
+                <a class="nav-item" data-tab="tab-apartments">
+                    <span class="icon">🏠</span>
+                    <span>Căn hộ & Hộ khẩu (UC02)</span>
+                </a>
+                <a class="nav-item" data-tab="tab-residents">
+                    <span class="icon">👥</span>
+                    <span>Nhân khẩu cư dân (UC03)</span>
+                </a>
+                <a class="nav-item" data-tab="tab-temporary">
+                    <span class="icon">📝</span>
+                    <span>Tạm trú & Tạm vắng (UC04)</span>
+                </a>
+                <a class="nav-item" data-tab="tab-vehicles">
+                    <span class="icon">🛵</span>
+                    <span>Phương tiện gửi xe (UC05)</span>
+                </a>
+
+                <div class="menu-category" data-role-section="admin-bqt">KẾ TOÁN & THU PHÍ</div>
+                <a class="nav-item" data-tab="tab-fees">
+                    <span class="icon">🏷️</span>
+                    <span>Danh mục khoản thu (UC06)</span>
+                </a>
+                <a class="nav-item" data-tab="tab-periods">
+                    <span class="icon">📅</span>
+                    <span>Lập đợt thu phí (UC07)</span>
+                </a>
+                <a class="nav-item" data-tab="tab-utilities">
+                    <span class="icon">⚡</span>
+                    <span>Điện nước thu hộ (UC08)</span>
+                </a>
+                <a class="nav-item" data-tab="tab-collection">
+                    <span class="icon">💰</span>
+                    <span>Thu phí & In biên lai (UC09)</span>
+                </a>
+                <a class="nav-item" data-tab="tab-reports">
+                    <span class="icon">📈</span>
+                    <span>Thống kê & Báo cáo (UC10)</span>
+                </a>
+
+                <div class="menu-category" data-role-section="admin-only">QUẢN TRỊ HỆ THỐNG</div>
+                <a class="nav-item" data-tab="tab-users">
+                    <span class="icon">🛡️</span>
+                    <span>Phân quyền cán bộ (UC11)</span>
+                </a>
+                <a class="nav-item" data-tab="tab-system">
+                    <span class="icon">💾</span>
+                    <span>Sao lưu & Dữ liệu (UC12)</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar" id="user-avatar">BM</div>
+                    <div class="user-meta">
+                        <div class="name" id="user-name">Đang tải...</div>
+                        <span class="role-badge" id="user-role-badge">Kế toán</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ============================================================ -->
+        <!-- VÙNG NỘI DUNG CHÍNH (MAIN WRAPPER) -->
+        <!-- ============================================================ -->
+        <div class="main-wrapper">
+            <!-- THANH TIÊU ĐỀ TRÊN CÙNG (TOPBAR) -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h2 class="page-title" id="page-heading">Bảng Điều Khiển Tổng Quan</h2>
+                </div>
+                <div class="topbar-right">
+                    <!-- Giả lập chuyển đổi vai trò (Role-Switcher để test RBAC nhanh) -->
+                    <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Vai trò thử nghiệm:</label>
+                    <select class="role-switcher-select" id="role-switcher">
+                        <option value="KE_TOAN">Kế toán / Thu ngân</option>
+                        <option value="BAN_QUAN_TRI">Ban quản trị (BQT)</option>
+                        <option value="ADMIN">Quản trị viên (Admin)</option>
+                        <option value="CU_DAN">Cư dân / Chủ hộ (A1205)</option>
+                    </select>
+
+                    <!-- Chuyển đổi Dark / Light Theme -->
+                    <button class="btn-icon" id="theme-toggle" title="Chuyển chế độ sáng/tối">🌓</button>
+                </div>
+            </header>
+
+            <!-- VÙNG CÁC TAB CHỨC NĂNG (CONTENT AREA) -->
+            <main class="content-area">
+
+                <!-- 1. TAB DASHBOARD TỔNG QUAN -->
+                <section class="tab-pane active" id="tab-dashboard">
+                    <!-- Grid 4 thẻ thống kê nhanh -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <div class="stat-label">Tổng số căn hộ</div>
+                                <div class="stat-value" id="stat-apartments">--</div>
+                                <div class="stat-sub" id="stat-occupied-sub">Đang ở: -- căn</div>
+                            </div>
+                            <div class="stat-icon">🏢</div>
+                        </div>
+                        <div class="stat-card purple">
+                            <div class="stat-info">
+                                <div class="stat-label">Tổng cư dân & Xe cộ</div>
+                                <div class="stat-value" id="stat-residents">--</div>
+                                <div class="stat-sub" id="stat-vehicles-sub">Phương tiện: -- xe</div>
+                            </div>
+                            <div class="stat-icon">👥</div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="stat-info">
+                                <div class="stat-label">Tổng số tiền đã thu</div>
+                                <div class="stat-value" id="stat-collected">-- đ</div>
+                                <div class="stat-sub" id="stat-collected-rate">Tỷ lệ: --%</div>
+                            </div>
+                            <div class="stat-icon">💵</div>
+                        </div>
+                        <div class="stat-card danger">
+                            <div class="stat-info">
+                                <div class="stat-label">Tổng nợ đọng còn lại</div>
+                                <div class="stat-value" id="stat-debt">-- đ</div>
+                                <div class="stat-sub">Cần đôn đốc thu nộp</div>
+                            </div>
+                            <div class="stat-icon">⚠️</div>
+                        </div>
+                    </div>
+
+                    <!-- Bảng đồ thị và danh sách nợ đọng -->
+                    <div style="display: grid; grid-template-columns: 2fr 1.2fr; gap: 24px; margin-bottom: 24px;">
+                        <div class="panel-card">
+                            <div class="panel-header">
+                                <div class="panel-title">📊 Doanh Thu Theo Danh Mục Khoản Thu</div>
+                            </div>
+                            <div style="padding: 20px; height: 320px;">
+                                <canvas id="chart-fees"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="panel-card">
+                            <div class="panel-header">
+                                <div class="panel-title">🚨 Căn Hộ Còn Nợ Nhiều Nhất</div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Căn hộ</th>
+                                            <th>Chủ hộ</th>
+                                            <th>Còn nợ</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="top-debtors-tbody">
+                                        <!-- Dữ liệu nạp từ JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. TAB QUẢN LÝ CĂN HỘ (UC02) -->
+                <section class="tab-pane" id="tab-apartments">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">🏠 Danh Sách Căn Hộ & Hộ Khẩu Chung Cư Blue Moon</div>
+                            <div class="panel-actions">
+                                <div class="search-input-wrap">
+                                    <span class="search-icon">🔍</span>
+                                    <input type="text" id="search-apartment" placeholder="Tìm theo số căn, chủ hộ...">
+                                </div>
+                                <button class="btn btn-primary" id="btn-add-apartment">+ Thêm căn hộ mới</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Số Căn</th>
+                                        <th>Diện Tích (m²)</th>
+                                        <th>Tầng</th>
+                                        <th>Chủ Hộ</th>
+                                        <th>Nhân Khẩu</th>
+                                        <th>Phương Tiện</th>
+                                        <th>Ngày Chuyển Đến (CR-003)</th>
+                                        <th>Trạng Thái</th>
+                                        <th>Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="apartments-tbody">
+                                    <!-- Dữ liệu nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. TAB QUẢN LÝ NHÂN KHẨU (UC03) -->
+                <section class="tab-pane" id="tab-residents">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">👥 Sổ Quản Lý Cư Dân & Nhân Khẩu</div>
+                            <div class="panel-actions">
+                                <div class="search-input-wrap">
+                                    <span class="search-icon">🔍</span>
+                                    <input type="text" id="search-resident" placeholder="Tìm họ tên, số CCCD, căn hộ...">
+                                </div>
+                                <button class="btn btn-primary" id="btn-add-resident">+ Khai báo cư dân mới</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Họ Và Tên</th>
+                                        <th>Căn Hộ</th>
+                                        <th>Số CCCD/Định Danh</th>
+                                        <th>Ngày Sinh</th>
+                                        <th>Giới Tính</th>
+                                        <th>Quan Hệ Với Chủ Hộ</th>
+                                        <th>Điện Thoại</th>
+                                        <th>Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="residents-tbody">
+                                    <!-- Dữ liệu nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. TAB QUẢN LÝ TẠM TRÚ, TẠM VẮNG (UC04) -->
+                <section class="tab-pane" id="tab-temporary">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">📝 Đăng Ký Biến Động Cư Trú (Tạm Trú / Tạm Vắng)</div>
+                            <div class="panel-actions">
+                                <button class="btn btn-primary" id="btn-add-temporary">+ Đăng ký tạm trú / tạm vắng</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cư Dân</th>
+                                        <th>Căn Hộ</th>
+                                        <th>Phân Loại</th>
+                                        <th>Thời Hạn (Từ ngày - Đến ngày)</th>
+                                        <th>Lý Do / Nơi Đến</th>
+                                        <th>Ngày Lập Phiếu</th>
+                                        <th>Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="temporary-tbody">
+                                    <!-- Dữ liệu nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. TAB QUẢN LÝ PHƯƠNG TIỆN GỬI XE (UC05) -->
+                <section class="tab-pane" id="tab-vehicles">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">🛵 Quản Lý Phương Tiện Gửi Xe Căn Hộ</div>
+                            <div class="panel-actions">
+                                <div class="search-input-wrap">
+                                    <span class="search-icon">🔍</span>
+                                    <input type="text" id="search-vehicle" placeholder="Tìm biển số, số căn...">
+                                </div>
+                                <button class="btn btn-primary" id="btn-add-vehicle">+ Đăng ký gửi xe mới</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Biển Số Xe</th>
+                                        <th>Loại Xe</th>
+                                        <th>Thông Tin Xe</th>
+                                        <th>Căn Hộ Sở Hữu</th>
+                                        <th>Chủ Hộ</th>
+                                        <th>Đơn Giá Áp Dụng</th>
+                                        <th>Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vehicles-tbody">
+                                    <!-- Dữ liệu nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. TAB DANH MỤC KHOẢN THU (UC06) -->
+                <section class="tab-pane" id="tab-fees">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">🏷️ Cấu Hình Danh Mục Khoản Thu & Đơn Giá Động</div>
+                            <div class="panel-actions">
+                                <button class="btn btn-primary" id="btn-add-fee">+ Thêm loại khoản thu</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã KT</th>
+                                        <th>Tên Khoản Thu</th>
+                                        <th>Phân Loại</th>
+                                        <th>Cách Tính</th>
+                                        <th>Đơn Giá Quy Định</th>
+                                        <th>Ghi Chú</th>
+                                        <th>Trạng Thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fees-tbody">
+                                    <!-- Dữ liệu nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. TAB LẬP ĐỢT THU PHÍ (UC07 + CR-003) -->
+                <section class="tab-pane" id="tab-periods">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">📅 Quản Lý Đợt Thu Phí Định Kỳ Theo Tháng</div>
+                            <div class="panel-actions">
+                                <button class="btn btn-primary" id="btn-add-period">+ Lập đợt thu mới (Tự động sinh phí)</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tên Đợt Thu</th>
+                                        <th>Kỳ Thu</th>
+                                        <th>Thời Gian Nộp</th>
+                                        <th>Số Hộ Phát Sinh</th>
+                                        <th>Tổng Phải Thu</th>
+                                        <th>Tổng Đã Thu</th>
+                                        <th>Trạng Thái</th>
+                                        <th>Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="periods-tbody">
+                                    <!-- Dữ liệu nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 8. TAB TIỀN ĐIỆN NƯỚC THU HỘ (UC08) -->
+                <section class="tab-pane" id="tab-utilities">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">⚡ Nhập Tiền Điện, Nước Sinh Hoạt Thu Hộ</div>
+                            <div class="panel-actions">
+                                <select class="role-switcher-select" id="select-utility-period">
+                                    <!-- Nạp danh sách đợt thu từ JS -->
+                                </select>
+                                <button class="btn btn-primary" id="btn-add-utility">+ Nhập hóa đơn điện / nước</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Căn Hộ</th>
+                                        <th>Chủ Hộ</th>
+                                        <th>Đợt Thu</th>
+                                        <th>Khoản Thu Hộ</th>
+                                        <th>Số Tiền Hóa Đơn</th>
+                                        <th>Đã Đóng</th>
+                                        <th>Trạng Thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="utilities-tbody">
+                                    <!-- Dữ liệu nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 9. TAB THU PHÍ & IN BIÊN LAI (UC09) -->
+                <section class="tab-pane" id="tab-collection">
+                    <!-- Khung tìm kiếm căn hộ thu tiền -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">🔍 Tra Cứu Công Nợ Căn Hộ & Thu Tiền</div>
+                            <div class="panel-actions">
+                                <div class="search-input-wrap" style="min-width: 300px;">
+                                    <span class="search-icon">🏠</span>
+                                    <input type="text" id="collect-search-apt" placeholder="Nhập số căn hộ (Ví dụ: A1205, B0402)...">
+                                </div>
+                                <button class="btn btn-primary" id="btn-find-debt">Tra cứu nợ</button>
+                            </div>
+                        </div>
+                        <div id="debt-result-container" style="padding: 24px; display: none;">
+                            <!-- Thông tin chủ hộ tóm tắt -->
+                            <div style="background-color: var(--bg-subtle); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h3 style="font-size: 16px; font-weight: 700;" id="debt-apt-number">Căn hộ: A1205</h3>
+                                    <p style="color: var(--text-secondary); font-size: 13.5px;" id="debt-owner-info">Chủ hộ: Nguyễn Văn An - SĐT: 0911222333</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 12px; color: var(--text-muted);">Tổng công nợ còn lại:</div>
+                                    <div style="font-size: 22px; font-weight: 800; color: var(--danger);" id="debt-total-amount">0 đ</div>
+                                </div>
+                            </div>
+
+                            <!-- Bảng các khoản cần nộp -->
+                            <h4 style="margin-bottom: 12px; font-weight: 600;">Danh sách các khoản nợ cần thanh toán:</h4>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Chọn</th>
+                                            <th>Đợt Thu</th>
+                                            <th>Khoản Thu</th>
+                                            <th>Phải Nộp</th>
+                                            <th>Đã Nộp</th>
+                                            <th>Còn Nợ</th>
+                                            <th>Thao Tác Thu Tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="debt-list-tbody">
+                                        <!-- Dữ liệu nạp từ JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lịch sử các phiếu thu đã lập -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">📄 Lịch Sử Phiếu Thu & Biên Lai Đã Thu Tiền</div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã Phiếu</th>
+                                        <th>Căn Hộ</th>
+                                        <th>Khoản Thu</th>
+                                        <th>Số Tiền Thu</th>
+                                        <th>Người Nộp</th>
+                                        <th>Hình Thức</th>
+                                        <th>Thu Ngân</th>
+                                        <th>Thời Gian</th>
+                                        <th>In Biên Lai Laser</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="receipts-tbody">
+                                    <!-- Dữ liệu nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 10. TAB THỐNG KÊ & BÁO CÁO (UC10) -->
+                <section class="tab-pane" id="tab-reports">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">📈 Báo Cáo Tổng Hợp Công Nợ & Thu Chi Chung Cư</div>
+                            <div class="panel-actions">
+                                <button class="btn btn-secondary" id="btn-export-csv">📥 Xuất file CSV</button>
+                                <button class="btn btn-primary" onclick="window.print()">🖨️ In báo cáo</button>
+                            </div>
+                        </div>
+                        <div style="padding: 24px;">
+                            <h4 style="margin-bottom: 14px; font-weight: 600;">Bảng Tổng Kết Theo Từng Khoản Thu:</h4>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tên Khoản Thu</th>
+                                            <th>Phân Loại</th>
+                                            <th>Tổng Phải Thu</th>
+                                            <th>Tổng Đã Thu</th>
+                                            <th>Tổng Còn Nợ</th>
+                                            <th>Tỷ Lệ Đạt Được (%)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="report-fees-tbody">
+                                        <!-- Dữ liệu nạp từ JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 11. TAB TÀI KHOẢN & PHÂN QUYỀN (UC11) -->
+                <section class="tab-pane" id="tab-users">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">🛡️ Quản Lý Cán Bộ & Phân Quyền Vai Trò (RBAC)</div>
+                            <div class="panel-actions">
+                                <button class="btn btn-primary" id="btn-add-user">+ Cấp tài khoản mới</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã TK</th>
+                                        <th>Tên Đăng Nhập</th>
+                                        <th>Họ Và Tên Cán Bộ</th>
+                                        <th>Vai Trò Phân Quyền</th>
+                                        <th>Số Điện Thoại</th>
+                                        <th>Trạng Thái</th>
+                                        <th>Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-tbody">
+                                    <!-- Dữ liệu nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 12. TAB SAO LƯU & DỮ LIỆU CSDL (UC12) -->
+                <section class="tab-pane" id="tab-system">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">💾 An Toàn Dữ Liệu, Sao Lưu & Phục Hồi CSDL</div>
+                        </div>
+                        <div style="padding: 28px; max-width: 680px;">
+                            <div style="margin-bottom: 24px;">
+                                <h4 style="font-weight: 600; margin-bottom: 8px;">1. Sao lưu dữ liệu dự phòng (Backup)</h4>
+                                <p style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 12px;">
+                                    Tải về toàn bộ cơ sở dữ liệu hệ thống (9 bảng thực thể) dưới dạng tệp tin JSON an toàn.
+                                </p>
+                                <button class="btn btn-primary" id="btn-download-backup">📥 Tải tệp sao lưu CSDL (JSON)</button>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 24px 0;">
+
+                            <div>
+                                <h4 style="font-weight: 600; margin-bottom: 8px;">2. Phục hồi dữ liệu từ bản sao lưu (Restore)</h4>
+                                <p style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 12px;">
+                                    Chọn tệp tin sao lưu JSON để khôi phục lại trạng thái CSDL.
+                                </p>
+                                <input type="file" id="file-restore" accept=".json" style="margin-bottom: 12px; display: block;">
+                                <button class="btn btn-danger" id="btn-exec-restore">⚠️ Khôi phục CSDL</button>
+                            </div>
+                        </div>
+                <!-- 13. CỔNG DÀNH CHO CƯ DÂN / CHỦ HỘ (XEM PHÍ, HẠN NỘP & ĐÓNG TIỀN ONLINE) -->
+                <section class="tab-pane" id="tab-resident-portal">
+                    <!-- Banner thông tin căn hộ của cư dân -->
+                    <div style="background: linear-gradient(135deg, #1e3a8a, #2563eb, #0ea5e9); color: white; padding: 26px 32px; border-radius: var(--radius-lg); margin-bottom: 24px; box-shadow: var(--shadow-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                        <div>
+                            <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; margin-bottom: 4px;">CỔNG THÔNG TIN CƯ DÂN CHUNG CƯ BLUE MOON</div>
+                            <h2 style="font-size: 26px; font-weight: 800; margin-bottom: 6px;" id="res-apt-title">Căn hộ: A1205</h2>
+                            <p style="opacity: 0.95; font-size: 14px;" id="res-apt-desc">Chủ hộ: Nguyễn Văn An • Diện tích: 85.5 m² • Tầng: 12</p>
+                        </div>
+                        <div style="text-align: right; background: rgba(255,255,255,0.15); padding: 14px 20px; border-radius: var(--radius-md); backdrop-filter: blur(8px);">
+                            <div style="font-size: 12px; opacity: 0.9;">Tổng số tiền cần thanh toán:</div>
+                            <div style="font-size: 26px; font-weight: 800; color: #fef08a;" id="res-banner-debt">0 đ</div>
+                        </div>
+                    </div>
+
+                    <!-- 3 thẻ thống kê tình trạng hóa đơn -->
+                    <div class="stats-grid">
+                        <div class="stat-card danger">
+                            <div class="stat-info">
+                                <div class="stat-label">Tổng tiền còn nợ</div>
+                                <div class="stat-value" id="res-stat-debt" style="color:var(--danger);">0 đ</div>
+                                <div class="stat-sub" id="res-stat-count">0 khoản chưa nộp</div>
+                            </div>
+                            <div class="stat-icon">💳</div>
+                        </div>
+                        <div class="stat-card warning">
+                            <div class="stat-info">
+                                <div class="stat-label">Hạn nộp tiền kỳ gần nhất</div>
+                                <div class="stat-value" id="res-stat-deadline" style="font-size: 20px;">25/11/2026</div>
+                                <div class="stat-sub" style="color: var(--warning); font-weight: 600;">⚠️ Vui lòng nộp trước hạn quy định</div>
+                            </div>
+                            <div class="stat-icon">⏰</div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="stat-info">
+                                <div class="stat-label">Phương thức thanh toán</div>
+                                <div class="stat-value" style="font-size: 19px; color: var(--success);">VietQR 24/7</div>
+                                <div class="stat-sub">Quét mã chuyển khoản tức thì</div>
+                            </div>
+                            <div class="stat-icon">📲</div>
+                        </div>
+                    </div>
+
+                    <!-- Bảng các khoản phí cần đóng và hạn nộp -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">📋 Danh Sách Các Khoản Phí & Hạn Nộp Của Căn Hộ</div>
+                            <div class="panel-actions">
+                                <button class="btn btn-success" id="btn-resident-pay-all">⚡ Đóng tiền toàn bộ bằng VietQR</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Khoản Thu</th>
+                                        <th>Kỳ Thu</th>
+                                        <th>Hạn Nộp Tiền</th>
+                                        <th>Phải Nộp (đ)</th>
+                                        <th>Đã Nộp (đ)</th>
+                                        <th>Còn Lại (đ)</th>
+                                        <th>Trạng Thái</th>
+                                        <th>Đóng Tiền Trực Tuyến</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="res-bills-tbody">
+                                    <!-- Nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Bảng lịch sử thanh toán & Biên lai điện tử -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">🧾 Lịch Sử Đã Đóng Phí & Biên Lai Điện Tử</div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã Phiếu Thu</th>
+                                        <th>Khoản Thu</th>
+                                        <th>Đợt Thu</th>
+                                        <th>Số Tiền Đã Đóng</th>
+                                        <th>Ngày Thanh Toán</th>
+                                        <th>Hình Thức</th>
+                                        <th>Biên Lai Điện Tử</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="res-receipts-tbody">
+                                    <!-- Nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin gia đình & xe gửi -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+                        <div class="panel-card">
+                            <div class="panel-header">
+                                <div class="panel-title">👨‍👩‍👧‍👦 Thành Viên Gia Đình Đang Cư Trú</div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Họ Và Tên</th>
+                                            <th>Quan Hệ</th>
+                                            <th>Ngày Sinh</th>
+                                            <th>CCCD</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="res-members-tbody">
+                                        <!-- Nạp từ JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="panel-card">
+                            <div class="panel-header">
+                                <div class="panel-title">🛵 Phương Tiện Đang Gửi Tại Tòa Nhà</div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Biển Số Xe</th>
+                                            <th>Loại Xe</th>
+                                            <th>Tên Xe</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="res-vehicles-tbody">
+                                        <!-- Nạp từ JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CÁC HỘP THOẠI MODAL PHỤC VỤ CÁC USE CASE -->
+    <!-- ============================================================ -->
+
+    <!-- MODAL 1: THÊM CĂN HỘ MỚI (UC02) -->
+    <div class="modal-backdrop" id="modal-apartment">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Thêm Căn Hộ Mới</h3>
+                <button class="modal-close" onclick="closeModal('modal-apartment')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-apartment">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Số căn hộ *</label>
+                            <input type="text" class="form-control" name="so_can_ho" placeholder="Ví dụ: A1208, B0501" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Diện tích (m²) *</label>
+                            <input type="number" step="0.01" class="form-control" name="dien_tich" placeholder="Ví dụ: 85.5" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Tầng</label>
+                            <input type="number" class="form-control" name="so_tang" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tình trạng</label>
+                            <select class="form-control" name="trang_thai">
+                                <option value="DANG_O">Đang sinh sống</option>
+                                <option value="CHO_THUE">Cho thuê</option>
+                                <option value="TRONG">Còn trống</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ngày chuyển đến (CR-003 tính số ngày thực tế)</label>
+                        <input type="date" class="form-control" name="ngay_chuyen_den" value="2026-10-01">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-apartment')">Hủy bỏ</button>
+                <button class="btn btn-primary" id="btn-save-apartment">Lưu Căn Hộ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: KHAI BÁO CƯ DÂN MỚI (UC03) -->
+    <div class="modal-backdrop" id="modal-resident">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Khai Báo Cư Dân / Nhân Khẩu Mới</h3>
+                <button class="modal-close" onclick="closeModal('modal-resident')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-resident">
+                    <div class="form-group">
+                        <label class="form-label">Căn hộ cư trú *</label>
+                        <select class="form-control" name="ma_ho" id="resident-select-apt" required>
+                            <!-- Nạp từ JS -->
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Họ và tên *</label>
+                            <input type="text" class="form-control" name="ho_ten" placeholder="Nguyễn Văn A" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ngày sinh *</label>
+                            <input type="date" class="form-control" name="ngay_sinh" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Giới tính</label>
+                            <select class="form-control" name="gioi_tinh">
+                                <option value="NAM">Nam</option>
+                                <option value="NU">Nữ</option>
+                                <option value="KHAC">Khác</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Số CCCD/Định danh</label>
+                            <input type="text" class="form-control" name="so_cccd" placeholder="12 chữ số">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Quan hệ với chủ hộ *</label>
+                            <select class="form-control" name="quan_he_chu_ho">
+                                <option value="Chủ hộ">Chủ hộ</option>
+                                <option value="Vợ">Vợ</option>
+                                <option value="Chồng">Chồng</option>
+                                <option value="Con">Con</option>
+                                <option value="Bố mẹ">Bố mẹ</option>
+                                <option value="Người thuê">Người thuê</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="text" class="form-control" name="so_dien_thoai" placeholder="09xxxxxxx">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-resident')">Hủy bỏ</button>
+                <button class="btn btn-primary" id="btn-save-resident">Lưu Nhân Khẩu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ĐĂNG KÝ PHƯƠNG TIỆN GỬI XE (UC05) -->
+    <div class="modal-backdrop" id="modal-vehicle">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Đăng Ký Phương Tiện Gửi Xe</h3>
+                <button class="modal-close" onclick="closeModal('modal-vehicle')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-vehicle">
+                    <div class="form-group">
+                        <label class="form-label">Căn hộ gửi xe *</label>
+                        <select class="form-control" name="ma_ho" id="vehicle-select-apt" required>
+                            <!-- Nạp từ JS -->
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Loại xe *</label>
+                            <select class="form-control" name="loai_xe">
+                                <option value="XE_MAY">Xe máy (70.000 đ/tháng)</option>
+                                <option value="O_TO">Xe ô tô (1.200.000 đ/tháng)</option>
+                                <option value="XE_DAP_DIEN">Xe đạp điện (40.000 đ/tháng)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Biển số xe *</label>
+                            <input type="text" class="form-control" name="bien_so" placeholder="Ví dụ: 29B1-123.45" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nhãn hiệu / Tên xe</label>
+                        <input type="text" class="form-control" name="ten_xe" placeholder="Ví dụ: Honda Vision đỏ, Mazda 3 trắng">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-vehicle')">Hủy bỏ</button>
+                <button class="btn btn-primary" id="btn-save-vehicle">Lưu Phương Tiện</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: LẬP ĐỢT THU PHÍ TỰ ĐỘNG THEO THÁNG (UC07 + CR-003) -->
+    <div class="modal-backdrop" id="modal-period">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Khởi Tạo Đợt Thu Phí Mới (Tự Động Tính Toán Phí)</h3>
+                <button class="modal-close" onclick="closeModal('modal-period')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-period">
+                    <div class="form-group">
+                        <label class="form-label">Tên đợt thu *</label>
+                        <input type="text" class="form-control" name="ten_dot" placeholder="Ví dụ: Thu phí tháng 12/2026" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Kỳ thu (Tháng/Năm) *</label>
+                            <input type="month" class="form-control" name="thang_nam" value="2026-12" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Hạn nộp tiền *</label>
+                            <input type="date" class="form-control" name="han_nop" value="2026-12-25" required>
+                        </div>
+                    </div>
+                    <div style="background-color: var(--primary-light); padding: 14px; border-radius: var(--radius-md); font-size: 13px; color: var(--primary); margin-top: 10px;">
+                        💡 <strong>Cơ chế tự động:</strong> Hệ thống sẽ tự động nhân diện tích từng căn hộ với đơn giá dịch vụ & quản lý (áp dụng CR-003 cho hộ chuyển đến giữa tháng), đồng thời tự đếm số xe máy, ô tô của hộ để tính phí gửi xe chính xác 100%.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-period')">Hủy bỏ</button>
+                <button class="btn btn-primary" id="btn-save-period">⚡ Tạo Đợt Thu & Sinh Hóa Đơn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: XEM CHI TIẾT ĐỢT THU CỦA TỪNG CĂN HỘ (UC07) -->
+    <div class="modal-backdrop" id="modal-period-details">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <h3 class="modal-title" id="period-detail-title">Bảng Kê Chi Tiết Đợt Thu</h3>
+                <button class="modal-close" onclick="closeModal('modal-period-details')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Căn Hộ</th>
+                                <th>Chủ Hộ</th>
+                                <th>Khoản Thu</th>
+                                <th>Số Tiền Phải Nộp</th>
+                                <th>Đã Nộp</th>
+                                <th>Còn Nợ</th>
+                                <th>Trạng Thái</th>
+                                <th>Ghi Chú</th>
+                            </tr>
+                        </thead>
+                        <tbody id="period-details-tbody">
+                            <!-- Nạp từ JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-period-details')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: NHẬP TIỀN ĐIỆN NƯỚC THU HỘ (UC08) -->
+    <div class="modal-backdrop" id="modal-utility">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Nhập Số Tiền Điện / Nước Thu Hộ</h3>
+                <button class="modal-close" onclick="closeModal('modal-utility')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-utility">
+                    <div class="form-group">
+                        <label class="form-label">Đợt thu phí *</label>
+                        <select class="form-control" name="ma_dot" id="util-modal-period" required>
+                            <!-- Nạp từ JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Căn hộ *</label>
+                        <select class="form-control" name="ma_ho" id="util-modal-apt" required>
+                            <!-- Nạp từ JS -->
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Khoản thu hộ *</label>
+                            <select class="form-control" name="ma_kt">
+                                <option value="5">Tiền điện sinh hoạt (Thu hộ)</option>
+                                <option value="6">Tiền nước sinh hoạt (Thu hộ)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Số tiền hóa đơn (VNĐ) *</label>
+                            <input type="number" class="form-control" name="so_tien" placeholder="Ví dụ: 650000" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ghi chú (Chỉ số cũ - mới / mã hóa đơn)</label>
+                        <input type="text" class="form-control" name="ghi_chu" placeholder="Ví dụ: Tiêu thụ 210 kWh, hóa đơn EVN-9821">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-utility')">Hủy bỏ</button>
+                <button class="btn btn-primary" id="btn-save-utility">Lưu Hóa Đơn Thu Hộ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: THU TIỀN CHO 1 KHOẢN CỤ THỂ (UC09) -->
+    <div class="modal-backdrop" id="modal-collect-pay">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Ghi Nhận Thu Phí & Tạo Phiếu Thu</h3>
+                <button class="modal-close" onclick="closeModal('modal-collect-pay')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-collect-pay">
+                    <input type="hidden" name="ma_ct" id="pay-ma-ct">
+                    <div class="form-group">
+                        <label class="form-label">Khoản thu:</label>
+                        <input type="text" class="form-control" id="pay-fee-name" readonly style="background-color: var(--bg-subtle);">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Còn nợ:</label>
+                            <input type="text" class="form-control" id="pay-fee-debt" readonly style="background-color: var(--bg-subtle); color: var(--danger); font-weight: 700;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Số tiền thực nộp (VNĐ) *</label>
+                            <input type="number" class="form-control" name="so_tien" id="pay-fee-input" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Họ tên người nộp tiền *</label>
+                            <input type="text" class="form-control" name="nguoi_nop" id="pay-payer-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Hình thức thanh toán</label>
+                            <select class="form-control" name="phuong_thuc">
+                                <option value="TIEN_MAT">Tiền mặt</option>
+                                <option value="CHUYEN_KHOAN">Chuyển khoản</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-collect-pay')">Hủy bỏ</button>
+                <button class="btn btn-success" id="btn-confirm-pay">💰 Xác Nhận Nộp & In Biên Lai</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 8: BIÊN LAI IN LASER CHUẨN CHO CƯ DÂN (UC09) -->
+    <div class="modal-backdrop" id="modal-receipt-print">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header no-print">
+                <h3 class="modal-title">Xem Trước Biên Lai Thu Tiền In Laser</h3>
+                <div>
+                    <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ In ra máy in</button>
+                    <button class="modal-close" onclick="closeModal('modal-receipt-print')">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body" style="padding: 10px; background-color: #f3f4f6;">
+                <!-- KHỔ GIẤY IN BIÊN LAI (PRINT PAPER) -->
+                <div class="receipt-paper" id="receipt-paper-content">
+                    <div class="receipt-header">
+                        <div style="font-size: 13px; text-transform: uppercase; font-weight: bold;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                        <div style="font-size: 12px; margin-bottom: 8px;">Độc lập – Tự do – Hạnh phúc</div>
+                        <h2>BIÊN LAI THU TIỀN PHÍ CHUNG CƯ</h2>
+                        <p>Ban Quản Trị Chung Cư Blue Moon • Hệ Thống Quản Lý BMFM</p>
+                    </div>
+
+                    <div class="receipt-meta">
+                        <div>
+                            <div><strong>Mã phiếu thu:</strong> <span id="rec-code">PT-202611-0001</span></div>
+                            <div><strong>Căn hộ số:</strong> <span id="rec-apt">A1205</span> (Diện tích: <span id="rec-area">85.5</span> m²)</div>
+                            <div><strong>Người nộp tiền:</strong> <span id="rec-payer">Nguyễn Văn An</span></div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div><strong>Ngày thu:</strong> <span id="rec-date">05/11/2026</span></div>
+                            <div><strong>Kỳ thu:</strong> <span id="rec-period">Tháng 11/2026</span></div>
+                            <div><strong>Thu ngân phụ trách:</strong> <span id="rec-cashier">Kế toán Nguyễn Hồng Minh</span></div>
+                        </div>
+                    </div>
+
+                    <table class="receipt-table">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Nội Dung Khoản Thu</th>
+                                <th>Phải Nộp (đ)</th>
+                                <th>Thực Nộp Lần Này (đ)</th>
+                                <th>Còn Lại (đ)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="text-align: center;">1</td>
+                                <td id="rec-fee-name">Phí dịch vụ chung cư</td>
+                                <td style="text-align: right;" id="rec-fee-due">1.026.000</td>
+                                <td style="text-align: right; font-weight: bold;" id="rec-fee-paid">1.026.000</td>
+                                <td style="text-align: right;" id="rec-fee-remain">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 14px; font-size: 14px;">
+                        <div><strong>Tổng số tiền bằng số:</strong> <span style="font-weight: bold; font-size: 16px;" id="rec-amount-num">1.026.000 VNĐ</span></div>
+                        <div><strong>Số tiền bằng chữ:</strong> <span style="font-style: italic;" id="rec-amount-words">Một triệu không trăm hai mươi sáu nghìn đồng chẵn.</span></div>
+                        <div><strong>Hình thức nộp:</strong> <span id="rec-method">Chuyển khoản</span></div>
+                    </div>
+
+                    <div class="receipt-signatures">
+                        <div class="sign-box">
+                            <strong>Người Nộp Tiền</strong>
+                            <p style="font-size: 12px; color: #666;">(Ký và ghi rõ họ tên)</p>
+                            <div class="sign-space"></div>
+                            <span id="rec-sign-payer">Nguyễn Văn An</span>
+                        </div>
+                        <div class="sign-box">
+                            <strong>Người Thu Tiền / Kế Toán</strong>
+                            <p style="font-size: 12px; color: #666;">(Ký và ghi rõ họ tên)</p>
+                            <div class="sign-space"></div>
+                            <span id="rec-sign-cashier">Nguyễn Hồng Minh</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer no-print">
+                <button class="btn btn-secondary" onclick="closeModal('modal-receipt-print')">Đóng</button>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ In Biên Lai Laser</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 9: ĐĂNG KÝ TẠM TRÚ/TẠM VẮNG (UC04) -->
+    <div class="modal-backdrop" id="modal-temporary-add">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Đăng Ký Tạm Trú / Tạm Vắng</h3>
+                <button class="modal-close" onclick="closeModal('modal-temporary-add')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-temporary-add">
+                    <div class="form-group">
+                        <label class="form-label">Chọn nhân khẩu cư dân *</label>
+                        <select class="form-control" name="ma_nk" id="temp-select-resident" required>
+                            <!-- Nạp từ JS -->
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Phân loại *</label>
+                            <select class="form-control" name="loai">
+                                <option value="TAM_TRU">Đăng ký Tạm trú</option>
+                                <option value="TAM_VANG">Khai báo Tạm vắng</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Từ ngày *</label>
+                            <input type="date" class="form-control" name="tu_ngay" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Đến ngày *</label>
+                        <input type="date" class="form-control" name="den_ngay" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Lý do / Nơi chuyển đi, đến</label>
+                        <input type="text" class="form-control" name="ly_do" placeholder="Ví dụ: Công tác tại TP.HCM 3 tháng">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-temporary-add')">Hủy bỏ</button>
+                <button class="btn btn-primary" id="btn-save-temp">Lưu Hồ Sơ Cư Trú</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 10: THÊM CÁN BỘ HỆ THỐNG (UC11) -->
+    <div class="modal-backdrop" id="modal-user">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Cấp Tài Khoản Cán Bộ Mới</h3>
+                <button class="modal-close" onclick="closeModal('modal-user')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-user">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Tên đăng nhập *</label>
+                            <input type="text" class="form-control" name="ten_dang_nhap" placeholder="Ví dụ: ketoan_lan" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Mật khẩu khởi tạo *</label>
+                            <input type="password" class="form-control" name="mat_khau" value="123456" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Họ và tên cán bộ *</label>
+                            <input type="text" class="form-control" name="ho_ten" placeholder="Vũ Thị Lan" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Vai trò phân quyền *</label>
+                            <select class="form-control" name="vai_tro">
+                                <option value="KE_TOAN">Kế toán / Thu ngân</option>
+                                <option value="BAN_QUAN_TRI">Ban quản trị</option>
+                                <option value="ADMIN">Quản trị viên (Admin)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control" name="so_dien_thoai" placeholder="09xxxxxxx">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-user')">Hủy bỏ</button>
+                <button class="btn btn-primary" id="btn-save-user">Tạo Tài Khoản</button>
+    <!-- MODAL 11: CỔNG THANH TOÁN ONLINE VIETQR DÀNH CHO CƯ DÂN -->
+    <div class="modal-backdrop" id="modal-resident-pay">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">📲 Cổng Thanh Toán Trực Tuyến VietQR 24/7</h3>
+                <button class="modal-close" onclick="closeModal('modal-resident-pay')">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <input type="hidden" id="online-pay-ma-ct">
+                
+                <div style="background-color: var(--primary-light); padding: 14px; border-radius: var(--radius-md); margin-bottom: 20px; text-align: left;">
+                    <div style="font-size: 13px; color: var(--text-muted);">Nội dung thanh toán:</div>
+                    <div style="font-size: 16px; font-weight: 700; color: var(--primary);" id="online-pay-fee-title">Phí dịch vụ chung cư</div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                        <span>Số tiền cần thanh toán:</span>
+                        <strong style="font-size: 18px; color: var(--danger);" id="online-pay-amount">0 đ</strong>
+                    </div>
+                </div>
+
+                <!-- KHUNG MÃ VIETQR NGÂN HÀNG CHUẨN -->
+                <div style="background: white; border: 2px dashed #3b82f6; border-radius: var(--radius-lg); padding: 20px; display: inline-block; box-shadow: var(--shadow-md); margin-bottom: 20px; max-width: 320px; width: 100%;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px;">
+                        <span style="font-weight: 800; color: #1e3a8a; font-size: 16px;">VietQR</span>
+                        <span style="background: #ef4444; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">NAPAS 247</span>
+                    </div>
+
+                    <!-- Ảnh VietQR -->
+                    <div id="vietqr-image-container" style="margin: 0 auto; min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                        <img id="vietqr-img" src="" alt="Mã VietQR" style="width: 220px; height: 220px; border-radius: 8px; object-fit: contain; box-shadow: var(--shadow-sm);">
+                    </div>
+
+                    <p style="font-size: 12px; color: #64748b; margin-top: 10px;">Mở ứng dụng Ngân hàng bất kỳ (Vietcombank, MB, Techcombank, BIDV, MoMo...) quét mã để thanh toán tức thì.</p>
+                </div>
+
+                <!-- Chi tiết tài khoản nhận tiền -->
+                <div style="background-color: var(--bg-subtle); padding: 14px 18px; border-radius: var(--radius-md); text-align: left; font-size: 13.5px; line-height: 1.6;">
+                    <div><strong>Ngân hàng:</strong> MBBank (Ngân hàng Quân Đội)</div>
+                    <div><strong>Số tài khoản:</strong> <code style="font-weight: bold; font-size: 15px; color: var(--primary);">0987654321</code></div>
+                    <div><strong>Chủ tài khoản:</strong> BQT CHUNG CU BLUE MOON</div>
+                    <div><strong>Nội dung CK:</strong> <code id="online-pay-memo" style="font-weight: bold; color: var(--danger);">BMFM A1205</code></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-resident-pay')">Đóng</button>
+                <button class="btn btn-success" id="btn-confirm-online-paid">
+                    ✅ Tôi Đã Chuyển Khoản Xong (Xác Nhận)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHUNG CHỨA THÔNG BÁO TOAST -->
+    <div id="toast-container"></div>
+
+    <!-- SCRIPT CHÍNH ĐIỀU KHIỂN HỆ THỐNG -->
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
