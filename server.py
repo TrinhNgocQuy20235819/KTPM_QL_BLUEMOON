@@ -186,123 +186,370 @@ def init_database():
     )
     """)
 
-    # Kiểm tra xem đã có dữ liệu mẫu chưa, nếu chưa thì chèn dữ liệu
-    cursor.execute("SELECT COUNT(*) as cnt FROM NGUOI_DUNG")
+    # 10. Bảng YEU_CAU_KIEN_NGHI (Đề xuất & Kiến nghị của các phòng gửi tới Ban Quản Trị / Admin duyệt)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS YEU_CAU_KIEN_NGHI (
+        ma_yc INTEGER PRIMARY KEY AUTOINCREMENT,
+        ma_ho INTEGER NOT NULL,
+        tieu_de TEXT NOT NULL,
+        loai_yeu_cau TEXT NOT NULL CHECK(loai_yeu_cau IN ('SUA_CHUA', 'AN_NINH', 'VE_SINH', 'THU_PHI', 'TIEN_ICH', 'KHAC')),
+        noi_dung TEXT NOT NULL,
+        ngay_gui TEXT DEFAULT CURRENT_TIMESTAMP,
+        nguoi_gui TEXT,
+        trang_thai TEXT NOT NULL DEFAULT 'CHO_DUYET' CHECK(trang_thai IN ('CHO_DUYET', 'DA_DUYET', 'DANG_XU_LY', 'DA_XU_LY', 'TU_CHOI')),
+        phan_hoi TEXT,
+        ngay_duyet TEXT,
+        nguoi_duyet TEXT,
+        FOREIGN KEY(ma_ho) REFERENCES HO_KHAU(ma_ho) ON DELETE CASCADE
+    )
+    """)
+
+    # Tự động tạo dữ liệu mẫu cho YEU_CAU_KIEN_NGHI nếu bảng chưa có dữ liệu
+    cursor.execute("SELECT COUNT(*) as cnt FROM YEU_CAU_KIEN_NGHI")
     if cursor.fetchone()['cnt'] == 0:
-        # Chèn người dùng (Cán bộ quản trị và Cư dân/Khách)
+        cursor.execute("SELECT ma_ho, so_can_ho FROM HO_KHAU WHERE so_can_ho IN ('A1205', 'B1104', 'B0402', 'A1801', 'C0502')")
+        ho_map = {r['so_can_ho']: r['ma_ho'] for r in cursor.fetchall()}
+        
+        sample_proposals = [
+            (ho_map.get('A1205', 6), 'Đề nghị thay bóng đèn chiếu sáng hành lang tầng 12 tháp A', 'SUA_CHUA',
+             'Bóng đèn hành lang ngay trước cửa phòng 1205 bị chớp tắt liên tục từ tối qua, đề nghị BQT cử kỹ thuật kiểm tra thay thế.',
+             '2026-11-15 08:30:00', 'Nguyễn Văn An', 'DA_DUYET',
+             'BQT đã tiếp nhận đề xuất và chuyển cho bộ phận kỹ thuật điện tòa nhà xử lý trong chiều nay.', '2026-11-15 09:15:00', 'Bùi Minh Tuấn (BQT)'),
+            
+            (ho_map.get('B1104', 18), 'Đăng ký cấp thêm 01 thẻ cư dân thang máy cho người thân', 'TIEN_ICH',
+             'Gia đình tôi mới có em gái chuyển lên học đại học ở cùng, xin đăng ký cấp thêm 01 thẻ từ thang máy.',
+             '2026-11-16 10:00:00', 'Trịnh Ngọc Quý', 'CHO_DUYET',
+             None, None, None),
+
+            (ho_map.get('B0402', 13), 'Kiểm tra áp lực nước sinh hoạt giờ cao điểm buổi tối', 'SUA_CHUA',
+             'Khung giờ 18h30 - 20h hàng ngày nước xả vòi sen rất yếu, mong BQT và kỹ thuật kiểm tra lại máy bơm tăng áp tầng 4.',
+             '2026-11-14 19:40:00', 'Phạm Quỳnh Nga', 'DANG_XU_LY',
+             'Tổ kỹ thuật đang đo áp lực đường ống trục đứng và bảo trì van điều áp.', '2026-11-15 08:00:00', 'Admin Hệ Thống'),
+
+            (ho_map.get('A1801', 10), 'Đề xuất bổ sung camera an ninh và ghế đá khu vực sân chơi trẻ em', 'AN_NINH',
+             'Khu vực sân chơi chung tầng 1 góc tháp A vào buổi chiều rất đông các cháu nhỏ vui chơi, đề xuất BQT lắp thêm camera và ghế nghỉ.',
+             '2026-11-10 14:20:00', 'Vương Đình Quang', 'DA_XU_LY',
+             'BQT đã hoàn thành lắp đặt camera an ninh góc sân chơi và bổ sung 2 ghế đá vào ngày 12/11/2026.', '2026-11-12 16:30:00', 'Bùi Minh Tuấn (BQT)'),
+
+            (ho_map.get('C0502', 24), 'Thắc mắc về chỉ số tiền điện thu hộ kỳ tháng 10/2026', 'THU_PHI',
+             'Chỉ số điện gia đình dùng trong tháng 10 tăng so với tháng 9, đề nghị kiểm tra lại công tơ điện tử.',
+             '2026-11-11 09:10:00', 'Lê Đức Minh', 'TU_CHOI',
+             'BQT và Kế toán đã cùng cán bộ EVN đối soát niêm chì và chỉ số công tơ điện tử, kết quả hoàn toàn trùng khớp với hóa đơn.', '2026-11-12 10:00:00', 'Kế toán Nguyễn Hồng Minh')
+        ]
         cursor.executemany("""
-        INSERT INTO NGUOI_DUNG (ten_dang_nhap, mat_khau, ho_ten, vai_tro, ma_ho, so_dien_thoai) VALUES (?, ?, ?, ?, ?, ?)
-        """, [
+        INSERT INTO YEU_CAU_KIEN_NGHI (ma_ho, tieu_de, loai_yeu_cau, noi_dung, ngay_gui, nguoi_gui, trang_thai, phan_hoi, ngay_duyet, nguoi_duyet)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, sample_proposals)
+        conn.commit()
+
+    # Kiểm tra xem đã có dữ liệu mẫu mở rộng chưa (nếu < 20 căn hộ thì nạp CSDL đầy đủ)
+    cursor.execute("SELECT COUNT(*) as cnt FROM HO_KHAU")
+    if cursor.fetchone()['cnt'] < 20:
+        # Xóa sạch dữ liệu cũ theo thứ tự khóa ngoại
+        for t in ['PHIEU_THU', 'CHI_TIET_THU', 'DOT_THU', 'KHOAN_THU', 'PHUONG_TIEN', 'TAM_TRU_TAM_VANG', 'NHAN_KHAU', 'NGUOI_DUNG', 'HO_KHAU']:
+            cursor.execute(f"DELETE FROM {t}")
+        try:
+            cursor.execute("DELETE FROM sqlite_sequence")
+        except Exception:
+            pass
+
+        # 1. BẢNG HO_KHAU (29 căn hộ phân bố 3 tháp A, B, C)
+        apartments = [
+            (1, 'A0201', 68.50, 2, 'DANG_O', '2025-05-10'),
+            (2, 'A0402', 72.00, 4, 'DANG_O', '2025-06-15'),
+            (3, 'A0603', 85.50, 6, 'CHO_THUE', '2026-03-01'),
+            (4, 'A0801', 82.00, 8, 'DANG_O', '2025-08-20'),
+            (5, 'A1002', 95.00, 10, 'DANG_O', '2025-09-01'),
+            (6, 'A1205', 85.50, 12, 'DANG_O', '2026-01-10'),
+            (7, 'A1206', 70.00, 12, 'DANG_O', '2026-02-15'),
+            (8, 'A1403', 105.00, 14, 'DANG_O', '2025-11-12'),
+            (9, 'A1602', 115.00, 16, 'DANG_O', '2025-12-05'),
+            (10, 'A1801', 145.00, 18, 'DANG_O', '2025-04-01'),
+            (11, 'B0202', 55.00, 2, 'TRONG', '2026-10-01'),
+            (12, 'B0301', 65.00, 3, 'DANG_O', '2026-01-15'),
+            (13, 'B0402', 95.00, 4, 'DANG_O', '2026-01-05'),
+            (14, 'B0403', 65.50, 4, 'DANG_O', '2026-10-16'),
+            (15, 'B0601', 78.00, 6, 'DANG_O', '2025-07-20'),
+            (16, 'B0705', 88.00, 7, 'CHO_THUE', '2026-02-01'),
+            (17, 'B0902', 92.50, 9, 'DANG_O', '2025-10-10'),
+            (18, 'B1104', 102.00, 11, 'DANG_O', '2025-08-15'),
+            (19, 'B1203', 86.00, 12, 'DANG_O', '2026-04-10'),
+            (20, 'B1502', 130.00, 15, 'DANG_O', '2025-03-20'),
+            (21, 'C0302', 58.00, 3, 'TRONG', '2026-10-01'),
+            (22, 'C0501', 75.00, 5, 'DANG_O', '2025-09-18'),
+            (23, 'C0604', 82.50, 6, 'DANG_O', '2026-02-28'),
+            (24, 'C0802', 90.00, 8, 'DANG_O', '2025-11-05'),
+            (25, 'C1005', 98.00, 10, 'DANG_O', '2025-06-30'),
+            (26, 'C1201', 85.00, 12, 'CHO_THUE', '2026-05-15'),
+            (27, 'C1501', 120.00, 15, 'DANG_O', '2026-03-01'),
+            (28, 'C1502', 75.00, 15, 'DANG_O', '2026-04-20'),
+            (29, 'C1703', 140.00, 17, 'DANG_O', '2025-01-10')
+        ]
+        cursor.executemany("INSERT INTO HO_KHAU (ma_ho, so_can_ho, dien_tich, so_tang, trang_thai, ngay_chuyen_den) VALUES (?, ?, ?, ?, ?, ?)", apartments)
+
+        # 2. BẢNG NHAN_KHAU (80 cư dân)
+        residents = [
+            (1, 1, 'Trương Văn Hùng', '1978-04-12', 'NAM', '001078001122', 'Chủ hộ', '0912111222'),
+            (2, 1, 'Nguyễn Thị Kim', '1982-09-18', 'NU', '001182003344', 'Vợ', '0912111333'),
+            (3, 1, 'Trương Tuấn Anh', '2010-03-25', 'NAM', '001210005566', 'Con', None),
+            (4, 2, 'Đoàn Quốc Toàn', '1983-11-05', 'NAM', '001083002233', 'Chủ hộ', '0983222333'),
+            (5, 2, 'Ngô Thúy Hiền', '1986-07-22', 'NU', '001186004455', 'Vợ', '0983222444'),
+            (6, 2, 'Đoàn Hải Đăng', '2014-08-14', 'NAM', '001214006677', 'Con', None),
+            (7, 3, 'Kim Jin-woo', '1985-02-14', 'NAM', '079085001234', 'Chủ hộ', '0909123456'),
+            (8, 3, 'Lee Seo-yeon', '1989-10-20', 'NU', '079189004321', 'Vợ', '0909654321'),
+            (9, 4, 'Đỗ Văn Minh', '1972-06-30', 'NAM', '001072008899', 'Chủ hộ', '0913888999'),
+            (10, 4, 'Lê Tuyết Mai', '1976-12-15', 'NU', '001176007788', 'Vợ', '0913888777'),
+            (11, 4, 'Đỗ Thu Hương', '2004-05-19', 'NU', '001204009900', 'Con', '0913888666'),
+            (12, 5, 'Bùi Công Tuấn', '1980-01-18', 'NAM', '001080003311', 'Chủ hộ', '0978333111'),
+            (13, 5, 'Tạ Minh Tâm', '1984-04-26', 'NU', '001184005522', 'Vợ', '0978333222'),
+            (14, 5, 'Bùi Tuấn Kiệt', '2013-12-08', 'NAM', '001213007733', 'Con', None),
+            (15, 6, 'Nguyễn Văn An', '1980-05-12', 'NAM', '001080012345', 'Chủ hộ', '0911222333'),
+            (16, 6, 'Trần Thị Mai', '1984-08-20', 'NU', '001184054321', 'Vợ', '0911222444'),
+            (17, 6, 'Nguyễn Minh Quân', '2012-11-10', 'NAM', '001212009876', 'Con', None),
+            (18, 7, 'Lê Hoàng Long', '1975-02-28', 'NAM', '001075034567', 'Chủ hộ', '0988777666'),
+            (19, 7, 'Hoàng Thu Thảo', '1979-09-14', 'NU', '001179045678', 'Vợ', '0988777555'),
+            (20, 7, 'Lê Gia Hưng', '2008-07-02', 'NAM', '001208056789', 'Con', '0988777444'),
+            (21, 8, 'Phạm Văn Hải', '1976-08-19', 'NAM', '001076014422', 'Chủ hộ', '0914144222'),
+            (22, 8, 'Đinh Ngọc Lan', '1981-03-24', 'NU', '001181015533', 'Vợ', '0914144333'),
+            (23, 8, 'Phạm Hải Nam', '2009-10-15', 'NAM', '001209016644', 'Con', None),
+            (24, 8, 'Phạm Thùy Chi', '2016-04-12', 'NU', '001216017755', 'Con', None),
+            (25, 9, 'Mai Văn Thịnh', '1982-12-01', 'NAM', '001082016611', 'Chủ hộ', '0916166111'),
+            (26, 9, 'Nguyễn Phương Oanh', '1987-05-18', 'NU', '001187017722', 'Vợ', '0916166222'),
+            (27, 9, 'Mai Anh Thư', '2015-06-20', 'NU', '001215018833', 'Con', None),
+            (28, 10, 'Vương Đình Quang', '1969-10-10', 'NAM', '001069018800', 'Chủ hộ', '0918188000'),
+            (29, 10, 'Lâm Thúy Nga', '1974-02-14', 'NU', '001174019911', 'Vợ', '0918188111'),
+            (30, 10, 'Vương Đình Khang', '2001-08-25', 'NAM', '001201020022', 'Con', '0918188222'),
+            (31, 10, 'Vương Minh Châu', '2007-11-30', 'NU', '001207021133', 'Con', None),
+            (32, 12, 'Cao Văn Bách', '1991-03-15', 'NAM', '001091003301', 'Chủ hộ', '0933033001'),
+            (33, 12, 'Đào Yến Nhi', '1994-07-28', 'NU', '001194004402', 'Vợ', '0933033002'),
+            (34, 13, 'Phạm Quỳnh Nga', '1990-09-15', 'NU', '001190087654', 'Chủ hộ', '0977666555'),
+            (35, 13, 'Nguyễn Tiến Dũng', '1988-11-20', 'NAM', '001088098765', 'Chồng', '0977666444'),
+            (36, 13, 'Nguyễn Bảo Ngọc', '2018-04-10', 'NU', '001218001122', 'Con', None),
+            (37, 14, 'Vũ Đức Thành', '1992-12-05', 'NAM', '001092043210', 'Chủ hộ', '0966555444'),
+            (38, 14, 'Bùi Phương Thảo', '1995-06-18', 'NU', '001195054321', 'Vợ', '0966555333'),
+            (39, 15, 'Trần Trọng Nghĩa', '1981-08-11', 'NAM', '001081006601', 'Chủ hộ', '0961066001'),
+            (40, 15, 'Nguyễn Thanh Hoa', '1985-01-29', 'NU', '001185007702', 'Vợ', '0961066002'),
+            (41, 15, 'Trần Bảo Lâm', '2011-09-15', 'NAM', '001211008803', 'Con', None),
+            (42, 16, 'John Smith', '1986-05-04', 'NAM', '079086007755', 'Chủ hộ', '0977112233'),
+            (43, 16, 'Emily Smith', '1990-12-12', 'NU', '079190008866', 'Vợ', '0977445566'),
+            (44, 17, 'Lương Đình Cường', '1979-04-05', 'NAM', '001079009901', 'Chủ hộ', '0992099001'),
+            (45, 17, 'Phạm Bích Ngọc', '1983-10-17', 'NU', '001183010002', 'Vợ', '0992099002'),
+            (46, 17, 'Lương Thái Sơn', '2012-02-22', 'NAM', '001212011103', 'Con', None),
+            (47, 18, 'Trịnh Ngọc Quý', '1985-07-14', 'NAM', '001085011401', 'Chủ hộ', '0911011401'),
+            (48, 18, 'Nguyễn Minh Trang', '1989-11-03', 'NU', '001189012502', 'Vợ', '0911011402'),
+            (49, 18, 'Trịnh Quang Minh', '2017-06-25', 'NAM', '001217013603', 'Con', None),
+            (50, 19, 'Chu Văn Đạt', '1987-03-21', 'NAM', '001087012301', 'Chủ hộ', '0923012301'),
+            (51, 19, 'Vũ Thùy Linh', '1991-08-09', 'NU', '001191013402', 'Vợ', '0923012302'),
+            (52, 19, 'Chu Hải Phong', '2019-11-14', 'NAM', '001219014503', 'Con', None),
+            (53, 20, 'Tạ Hoàng Nam', '1973-09-08', 'NAM', '001073015201', 'Chủ hộ', '0952015201'),
+            (54, 20, 'Trần Diệu Linh', '1978-04-16', 'NU', '001178016302', 'Vợ', '0952015202'),
+            (55, 20, 'Tạ Gia Phúc', '2005-12-30', 'NAM', '001205017403', 'Con', '0952015203'),
+            (56, 20, 'Vũ Thị Lợi', '1948-02-10', 'NU', '001148018504', 'Bố mẹ', None),
+            (57, 22, 'Phan Hồng Nhung', '1986-10-11', 'NU', '001186005501', 'Chủ hộ', '0905005501'),
+            (58, 22, 'Đỗ Trọng Tấn', '1983-05-17', 'NAM', '001083006602', 'Chồng', '0905005502'),
+            (59, 22, 'Đỗ Quỳnh Chi', '2014-03-08', 'NU', '001214007703', 'Con', None),
+            (60, 23, 'Nghiêm Xuân Thành', '1979-12-25', 'NAM', '001079006641', 'Chủ hộ', '0964006641'),
+            (61, 23, 'Dương Kiều Trang', '1984-06-19', 'NU', '001184007752', 'Vợ', '0964006642'),
+            (62, 23, 'Nghiêm Đức Anh', '2010-09-02', 'NAM', '001210008863', 'Con', None),
+            (63, 24, 'Bạch Quốc Huy', '1982-01-30', 'NAM', '001082008821', 'Chủ hộ', '0982008821'),
+            (64, 24, 'Triệu Thùy Dung', '1987-08-14', 'NU', '001187009932', 'Vợ', '0982008822'),
+            (65, 24, 'Bạch Ngọc Hà', '2016-10-21', 'NU', '001216010043', 'Con', None),
+            (66, 25, 'Hồ Anh Quân', '1980-07-07', 'NAM', '001080010051', 'Chủ hộ', '0910010051'),
+            (67, 25, 'Lưu Thúy Quỳnh', '1985-02-18', 'NU', '001185011162', 'Vợ', '0910010052'),
+            (68, 25, 'Hồ Minh Nhật', '2013-05-09', 'NAM', '001213012273', 'Con', None),
+            (69, 26, 'Lý Gia Hưng', '1993-04-15', 'NAM', '001093012011', 'Chủ hộ', '0912012011'),
+            (70, 26, 'Nguyễn Kiều My', '1996-09-22', 'NU', '001196013122', 'Vợ', '0912012012'),
+            (71, 27, 'Hoàng Gia Bảo', '1968-07-22', 'NAM', '001068019283', 'Chủ hộ', '0944333222'),
+            (72, 27, 'Đặng Hồng Vân', '1973-11-15', 'NU', '001173028394', 'Vợ', '0944333333'),
+            (73, 27, 'Hoàng Minh Khôi', '2000-03-10', 'NAM', '001200037485', 'Con', '0944333444'),
+            (74, 27, 'Hoàng Thảo Vy', '2006-08-25', 'NU', '001206046576', 'Con', None),
+            (75, 28, 'Đặng Thu Trang', '1995-04-18', 'NU', '001195076543', 'Chủ hộ', '0933222111'),
+            (76, 28, 'Trần Quang Hải', '1992-09-09', 'NAM', '001092065432', 'Chồng', '0933222000'),
+            (77, 29, 'Dương Minh Tuấn', '1971-03-03', 'NAM', '001071017031', 'Chủ hộ', '0917017031'),
+            (78, 29, 'Phạm Quỳnh Chi', '1976-08-20', 'NU', '001176018142', 'Vợ', '0917017032'),
+            (79, 29, 'Dương Minh Đức', '2002-05-14', 'NAM', '001202019253', 'Con', '0917017033'),
+            (80, 29, 'Dương Ngọc Diệp', '2009-12-01', 'NU', '001209020364', 'Con', None)
+        ]
+        cursor.executemany("INSERT INTO NHAN_KHAU (ma_nk, ma_ho, ho_ten, ngay_sinh, gioi_tinh, so_cccd, quan_he_chu_ho, so_dien_thoai) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", residents)
+
+        # Cập nhật mã chủ hộ cho HO_KHAU
+        chu_ho_map = {
+            1: 1, 2: 4, 3: 7, 4: 9, 5: 12, 6: 15, 7: 18, 8: 21, 9: 25, 10: 28,
+            12: 32, 13: 34, 14: 37, 15: 39, 16: 42, 17: 44, 18: 47, 19: 50, 20: 53,
+            22: 57, 23: 60, 24: 63, 25: 66, 26: 69, 27: 71, 28: 75, 29: 77
+        }
+        for ma_ho, ma_chu_ho in chu_ho_map.items():
+            cursor.execute("UPDATE HO_KHAU SET ma_chu_ho = ? WHERE ma_ho = ?", (ma_chu_ho, ma_ho))
+
+        # 3. BẢNG NGUOI_DUNG (Cán bộ & Cư dân đại diện các tháp)
+        users = [
             ('admin', 'admin123', 'Quản trị viên Hệ thống', 'ADMIN', None, '0901234567'),
-            ('bqt_truongban', 'bqt123', 'Trưởng Ban Quản Trị', 'BAN_QUAN_TRI', None, '0912345678'),
-            ('ketoan_minh', 'ketoan123', 'Kế toán Nguyễn Hồng Minh', 'KE_TOAN', None, '0987654321'),
-            ('cudan_a1205', '123456', 'Nguyễn Văn An (Chủ hộ A1205)', 'CU_DAN', 1, '0911222333'),
-            ('cudan_b0402', '123456', 'Phạm Quỳnh Nga (Chủ hộ B0402)', 'CU_DAN', 3, '0977666555'),
-            ('cudan_b0403', '123456', 'Vũ Đức Thành (Chủ hộ B0403)', 'CU_DAN', 4, '0966555444')
-        ])
+            ('bqt_truongban', 'bqt123', 'Trưởng Ban Quản Trị (Hoàng Gia Bảo)', 'BAN_QUAN_TRI', None, '0944333222'),
+            ('bqt_phoban', 'bqt123', 'Phó Ban Quản Trị (Lê Hoàng Long)', 'BAN_QUAN_TRI', None, '0988777666'),
+            ('ketoan_minh', 'ketoan123', 'Kế toán trưởng Nguyễn Hồng Minh', 'KE_TOAN', None, '0987654321'),
+            ('ketoan_thu', 'ketoan123', 'Thu ngân viên Trần Thị Mai', 'KE_TOAN', None, '0911222444'),
+            ('cudan_a1205', '123456', 'Nguyễn Văn An (Chủ hộ A1205)', 'CU_DAN', 6, '0911222333'),
+            ('cudan_a0801', '123456', 'Đỗ Văn Minh (Chủ hộ A0801)', 'CU_DAN', 4, '0913888999'),
+            ('cudan_a1801', '123456', 'Vương Đình Quang (Chủ hộ A1801)', 'CU_DAN', 10, '0918188000'),
+            ('cudan_b0402', '123456', 'Phạm Quỳnh Nga (Chủ hộ B0402)', 'CU_DAN', 13, '0977666555'),
+            ('cudan_b0403', '123456', 'Vũ Đức Thành (Chủ hộ B0403)', 'CU_DAN', 14, '0966555444'),
+            ('cudan_b1104', '123456', 'Trịnh Ngọc Quý (Chủ hộ B1104)', 'CU_DAN', 18, '0911011401'),
+            ('cudan_c0501', '123456', 'Phan Hồng Nhung (Chủ hộ C0501)', 'CU_DAN', 22, '0905005501'),
+            ('cudan_c1501', '123456', 'Hoàng Gia Bảo (Chủ hộ C1501)', 'CU_DAN', 27, '0944333222'),
+            ('cudan_c1703', '123456', 'Dương Minh Tuấn (Chủ hộ C1703)', 'CU_DAN', 29, '0917017031')
+        ]
+        cursor.executemany("INSERT INTO NGUOI_DUNG (ten_dang_nhap, mat_khau, ho_ten, vai_tro, ma_ho, so_dien_thoai) VALUES (?, ?, ?, ?, ?, ?)", users)
 
-        # Chèn căn hộ mẫu
-        cursor.executemany("""
-        INSERT INTO HO_KHAU (ma_ho, so_can_ho, dien_tich, so_tang, trang_thai, ngay_chuyen_den) VALUES (?, ?, ?, ?, ?, ?)
-        """, [
-            (1, 'A1205', 85.50, 12, 'DANG_O', '2026-01-10'),
-            (2, 'A1206', 70.00, 12, 'DANG_O', '2026-02-15'),
-            (3, 'B0402', 95.00, 4, 'DANG_O', '2026-01-05'),
-            (4, 'B0403', 65.50, 4, 'DANG_O', '2026-10-16'), # Chuyển đến giữa tháng (CR-003)
-            (5, 'C1501', 120.00, 15, 'DANG_O', '2026-03-01'),
-            (6, 'C1502', 75.00, 15, 'CHO_THUE', '2026-04-20'),
-            (7, 'A0801', 82.00, 8, 'TRONG', '2026-10-01')
-        ])
+        # 4. BẢNG PHUONG_TIEN (49 phương tiện)
+        vehicles = [
+            (1, 'XE_MAY', '29B1-123.45', 'Honda AirBlade'), (1, 'XE_MAY', '29B1-234.56', 'Honda Vision'),
+            (2, 'XE_MAY', '29B2-345.67', 'Yamaha Grande'), (2, 'O_TO', '30G-112.23', 'Toyota Vios'),
+            (3, 'XE_MAY', '29C1-456.78', 'Honda Lead'), (4, 'XE_MAY', '29C2-567.89', 'Honda SH 125i'),
+            (4, 'O_TO', '30H-223.34', 'Hyundai Tucson'), (5, 'XE_MAY', '29D1-678.90', 'Yamaha NVX'),
+            (5, 'O_TO', '30H-334.45', 'Kia Seltos'), (6, 'XE_MAY', '29B1-888.88', 'Honda SH 150i'),
+            (6, 'XE_MAY', '29B1-678.90', 'Honda AirBlade'), (6, 'O_TO', '30F-123.45', 'Mazda CX-5'),
+            (7, 'XE_MAY', '29C1-555.55', 'Yamaha Grande'), (7, 'XE_DAP_DIEN', '29MD-012.34', 'VinFast Feliz'),
+            (8, 'XE_MAY', '29E1-111.22', 'Honda Vision'), (8, 'O_TO', '30G-445.56', 'Ford Everest'),
+            (9, 'XE_MAY', '29E2-222.33', 'Vespa Primavera'), (9, 'O_TO', '30H-556.67', 'Honda CR-V'),
+            (10, 'O_TO', '30K-999.99', 'Mercedes-Benz E300'), (10, 'O_TO', '30K-888.88', 'Porsche Macan'),
+            (10, 'XE_MAY', '29E3-999.99', 'BMW R1250'), (12, 'XE_MAY', '29F1-333.44', 'Honda Winner X'),
+            (13, 'O_TO', '30G-999.99', 'Mercedes C200'), (13, 'XE_MAY', '29F2-444.55', 'Honda SH Mode'),
+            (14, 'XE_MAY', '29D1-333.33', 'Honda Wave Alpha'), (15, 'XE_MAY', '29G1-555.66', 'Yamaha Exciter'),
+            (15, 'O_TO', '30F-667.78', 'Mazda 3'), (16, 'XE_MAY', '29G2-666.77', 'Honda AirBlade'),
+            (17, 'XE_MAY', '29H1-777.88', 'Honda Lead'), (17, 'O_TO', '30E-778.89', 'VinFast VF8'),
+            (18, 'XE_MAY', '29H2-888.99', 'Honda SH 150i'), (18, 'O_TO', '30G-889.90', 'Toyota Camry'),
+            (19, 'XE_MAY', '29K1-111.00', 'Yamaha Janus'), (20, 'O_TO', '30F-990.01', 'Lexus RX350'),
+            (20, 'XE_MAY', '29K2-222.11', 'Vespa Sprint'), (22, 'XE_MAY', '29L1-333.22', 'Honda Vision'),
+            (22, 'O_TO', '30H-001.12', 'Kia Carnival'), (23, 'XE_MAY', '29L2-444.33', 'Honda Future'),
+            (24, 'XE_MAY', '29M1-555.44', 'Honda SH 125i'), (24, 'O_TO', '30G-112.34', 'Hyundai SantaFe'),
+            (25, 'XE_MAY', '29M2-666.55', 'Yamaha Grande'), (26, 'XE_MAY', '29N1-777.66', 'Honda AirBlade'),
+            (27, 'O_TO', '30H-888.66', 'Toyota Camry'), (27, 'XE_MAY', '29E1-777.77', 'Vespa Sprint'),
+            (27, 'XE_MAY', '29N2-888.77', 'Honda Lead'), (28, 'XE_MAY', '29P1-999.88', 'Honda Vision'),
+            (29, 'O_TO', '30K-777.77', 'BMW X5'), (29, 'O_TO', '30K-666.66', 'Mercedes GLC 300'),
+            (29, 'XE_MAY', '29P2-111.99', 'Honda SH 350i')
+        ]
+        cursor.executemany("INSERT INTO PHUONG_TIEN (ma_ho, loai_xe, bien_so, ten_xe) VALUES (?, ?, ?, ?)", vehicles)
 
-        # Chèn nhân khẩu mẫu
-        cursor.executemany("""
-        INSERT INTO NHAN_KHAU (ma_nk, ma_ho, ho_ten, ngay_sinh, gioi_tinh, so_cccd, quan_he_chu_ho, so_dien_thoai) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, [
-            (1, 1, 'Nguyễn Văn An', '1980-05-12', 'NAM', '001080012345', 'Chủ hộ', '0911222333'),
-            (2, 1, 'Trần Thị Mai', '1984-08-20', 'NU', '001184054321', 'Vợ', '0911222444'),
-            (3, 1, 'Nguyễn Minh Quân', '2012-11-10', 'NAM', '001212009876', 'Con', None),
-            (4, 2, 'Lê Hoàng Long', '1975-02-28', 'NAM', '001075034567', 'Chủ hộ', '0988777666'),
-            (5, 3, 'Phạm Quỳnh Nga', '1990-09-15', 'NU', '001190087654', 'Chủ hộ', '0977666555'),
-            (6, 4, 'Vũ Đức Thành', '1992-12-05', 'NAM', '001092043210', 'Chủ hộ', '0966555444'),
-            (7, 5, 'Hoàng Gia Bảo', '1968-07-22', 'NAM', '001068019283', 'Chủ hộ', '0944333222'),
-            (8, 6, 'Đặng Thu Trang', '1995-04-18', 'NU', '001195076543', 'Chủ hộ', '0933222111')
-        ])
+        # 5. BẢNG TAM_TRU_TAM_VANG
+        temporary = [
+            (7, 'TAM_TRU', '2026-03-01', '2027-03-01', 'Chuyên gia Hàn Quốc làm việc tại Samsung R&D'),
+            (8, 'TAM_TRU', '2026-03-01', '2027-03-01', 'Vợ đi cùng chuyên gia'),
+            (42, 'TAM_TRU', '2026-02-01', '2027-02-01', 'Giảng viên tiếng Anh tại trường quốc tế'),
+            (43, 'TAM_TRU', '2026-02-01', '2027-02-01', 'Vợ chuyên gia'),
+            (69, 'TAM_TRU', '2026-05-15', '2027-05-15', 'Kỹ sư phần mềm thuê nhà ở dài hạn'),
+            (70, 'TAM_TRU', '2026-05-15', '2027-05-15', 'Vợ người thuê'),
+            (3, 'TAM_VANG', '2026-08-01', '2026-12-31', 'Tham gia khóa huấn luyện năng khiếu thể thao'),
+            (11, 'TAM_VANG', '2026-09-01', '2027-06-30', 'Sinh viên du học trao đổi tại Nhật Bản'),
+            (30, 'TAM_VANG', '2026-06-01', '2027-06-01', 'Du học thạc sĩ tại Anh Quốc'),
+            (55, 'TAM_VANG', '2026-09-15', '2027-01-15', 'Học kỳ quân sự đại học tại Xuân Hòa'),
+            (73, 'TAM_VANG', '2026-10-01', '2026-11-15', 'Công tác dự án kỹ thuật tại Đà Nẵng'),
+            (79, 'TAM_VANG', '2026-08-15', '2027-05-30', 'Học đại học tại TP. Hồ Chí Minh')
+        ]
+        cursor.executemany("INSERT INTO TAM_TRU_TAM_VANG (ma_nk, loai, tu_ngay, den_ngay, ly_do) VALUES (?, ?, ?, ?, ?)", temporary)
 
-        # Cập nhật chủ hộ
-        cursor.execute("UPDATE HO_KHAU SET ma_chu_ho = 1 WHERE ma_ho = 1")
-        cursor.execute("UPDATE HO_KHAU SET ma_chu_ho = 4 WHERE ma_ho = 2")
-        cursor.execute("UPDATE HO_KHAU SET ma_chu_ho = 5 WHERE ma_ho = 3")
-        cursor.execute("UPDATE HO_KHAU SET ma_chu_ho = 6 WHERE ma_ho = 4")
-        cursor.execute("UPDATE HO_KHAU SET ma_chu_ho = 7 WHERE ma_ho = 5")
-        cursor.execute("UPDATE HO_KHAU SET ma_chu_ho = 8 WHERE ma_ho = 6")
-
-        # Chèn phương tiện mẫu
-        cursor.executemany("""
-        INSERT INTO PHUONG_TIEN (ma_ho, loai_xe, bien_so, ten_xe) VALUES (?, ?, ?, ?)
-        """, [
-            (1, 'XE_MAY', '29B1-888.88', 'Honda SH 150i'),
-            (1, 'XE_MAY', '29B1-678.90', 'Honda AirBlade'),
-            (1, 'O_TO', '30F-123.45', 'Mazda CX-5'),
-            (2, 'XE_MAY', '29C1-555.55', 'Yamaha Grande'),
-            (3, 'O_TO', '30G-999.99', 'Mercedes C200'),
-            (4, 'XE_MAY', '29D1-333.33', 'Honda Wave Alpha'),
-            (5, 'O_TO', '30H-888.66', 'Toyota Camry'),
-            (5, 'XE_MAY', '29E1-777.77', 'Vespa Sprint')
-        ])
-
-        # Chèn danh mục khoản thu
-        cursor.executemany("""
-        INSERT INTO KHOAN_THU (ma_kt, ten_khoan_thu, loai, cach_tinh, don_gia, ghi_chu, kich_hoat) VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, [
+        # 6. BẢNG KHOAN_THU
+        fees = [
             (1, 'Phí dịch vụ chung cư', 'BAT_BUOC', 'THEO_DIEN_TICH', 12000, 'Khung quy định: 2.500 - 16.500 đ/m2/tháng', 1),
             (2, 'Phí quản lý vận hành', 'BAT_BUOC', 'THEO_DIEN_TICH', 7000, 'Mức áp dụng hiện hành: 7.000 đ/m2/tháng', 1),
             (3, 'Phí trông giữ xe máy', 'BAT_BUOC', 'THEO_XE_MAY', 70000, 'Đơn giá: 70.000 đ/xe máy/tháng', 1),
             (4, 'Phí trông giữ xe ô tô', 'BAT_BUOC', 'THEO_O_TO', 1200000, 'Đơn giá: 1.200.000 đ/xe ô tô/tháng', 1),
-            (5, 'Tiền điện sinh hoạt (Thu hộ)', 'THU_HO', 'NHAP_TAY', 0, 'Nhập theo hóa đơn thực tế của Điện lực', 1),
+            (5, 'Tiền điện sinh hoạt (Thu hộ)', 'THU_HO', 'NHAP_TAY', 0, 'Nhập theo hóa đơn thực tế của Điện lực EVN', 1),
             (6, 'Tiền nước sinh hoạt (Thu hộ)', 'THU_HO', 'NHAP_TAY', 0, 'Nhập theo hóa đơn thực tế của Cty Nước sạch', 1),
-            (7, 'Quỹ Vì người nghèo', 'TU_NGUYEN', 'THEO_HO', 50000, 'Vận động ủng hộ vì người nghèo', 1),
+            (7, 'Quỹ Vì người nghèo', 'TU_NGUYEN', 'THEO_HO', 50000, 'Vận động ủng hộ vì người nghèo năm 2026', 1),
             (8, 'Quỹ Đền ơn đáp nghĩa 27/7', 'TU_NGUYEN', 'THEO_HO', 50000, 'Ủng hộ tri ân ngày thương binh liệt sĩ', 1),
-            (9, 'Quỹ Tết thiếu nhi 1/6', 'TU_NGUYEN', 'THEO_HO', 100000, 'Quỹ tổ chức sự kiện thiếu nhi chung cư', 1)
-        ])
+            (9, 'Quỹ Tết thiếu nhi 1/6', 'TU_NGUYEN', 'THEO_HO', 100000, 'Quỹ tổ chức sự kiện thiếu nhi chung cư Blue Moon', 1)
+        ]
+        cursor.executemany("INSERT INTO KHOAN_THU (ma_kt, ten_khoan_thu, loai, cach_tinh, don_gia, ghi_chu, kich_hoat) VALUES (?, ?, ?, ?, ?, ?, ?)", fees)
 
-        # Chèn đợt thu mẫu tháng 11/2026
-        cursor.execute("""
-        INSERT INTO DOT_THU (ma_dot, ten_dot, thang_nam, ngay_bat_dau, han_nop, trang_thai) 
-        VALUES (1, 'Thu phí tháng 11/2026', '2026-11', '2026-11-01', '2026-11-25', 'DANG_THU')
-        """)
+        # 7. BẢNG DOT_THU
+        cursor.execute("INSERT INTO DOT_THU (ma_dot, ten_dot, thang_nam, ngay_bat_dau, han_nop, trang_thai) VALUES (1, 'Thu phí tháng 10/2026', '2026-10', '2026-10-01', '2026-10-25', 'DA_KHOA')")
+        cursor.execute("INSERT INTO DOT_THU (ma_dot, ten_dot, thang_nam, ngay_bat_dau, han_nop, trang_thai) VALUES (2, 'Thu phí tháng 11/2026', '2026-11', '2026-11-01', '2026-11-25', 'DANG_THU')")
 
-        # Chi tiết thu mẫu
-        cursor.executemany("""
-        INSERT INTO CHI_TIET_THU (ma_ct, ma_dot, ma_ho, ma_kt, so_tien_phai_nop, so_tien_da_nop, trang_thai) VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, [
-            (1, 1, 1, 1, 1026000, 1026000, 'DA_NOP_DU'),
-            (2, 1, 1, 2, 598500, 598500, 'DA_NOP_DU'),
-            (3, 1, 1, 3, 140000, 140000, 'DA_NOP_DU'),
-            (4, 1, 1, 4, 1200000, 1200000, 'DA_NOP_DU'),
-            (5, 1, 1, 5, 650000, 650000, 'DA_NOP_DU'),
-            (6, 1, 1, 6, 180000, 180000, 'DA_NOP_DU'),
-            (7, 1, 3, 1, 1140000, 0, 'CHUA_NOP'),
-            (8, 1, 3, 2, 665000, 0, 'CHUA_NOP'),
-            (9, 1, 3, 4, 1200000, 0, 'CHUA_NOP'),
-            (10, 1, 4, 1, 786000, 400000, 'NOP_THIEU'),
-            (11, 1, 4, 2, 458500, 0, 'CHUA_NOP'),
-            (12, 1, 4, 3, 70000, 70000, 'DA_NOP_DU')
-        ])
+        # 8. BẢNG CHI_TIET_THU & PHIEU_THU
+        active_apts = cursor.execute("SELECT * FROM HO_KHAU WHERE trang_thai != 'TRONG'").fetchall()
+        veh_counts = {}
+        for r in cursor.execute("SELECT ma_ho, loai_xe, COUNT(*) as c FROM PHUONG_TIEN GROUP BY ma_ho, loai_xe").fetchall():
+            if r['ma_ho'] not in veh_counts:
+                veh_counts[r['ma_ho']] = {'XE_MAY': 0, 'O_TO': 0, 'XE_DAP_DIEN': 0}
+            veh_counts[r['ma_ho']][r['loai_xe']] = r['c']
 
-        # Phiếu thu mẫu
-        cursor.executemany("""
-        INSERT INTO PHIEU_THU (ma_phieu, ma_ct, so_tien, ngay_nop, nguoi_nop, phuong_thuc, ma_tk_thu, ghi_chu) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, [
-            ('PT-202611-0001', 1, 1026000, '2026-11-05 08:30:00', 'Nguyễn Văn An', 'CHUYEN_KHOAN', 3, 'Thanh toán phí dịch vụ tháng 11'),
-            ('PT-202611-0002', 2, 598500, '2026-11-05 08:30:00', 'Nguyễn Văn An', 'CHUYEN_KHOAN', 3, 'Thanh toán phí quản lý tháng 11'),
-            ('PT-202611-0003', 3, 140000, '2026-11-05 08:30:00', 'Nguyễn Văn An', 'TIEN_MAT', 3, 'Thanh toán phí 2 xe máy'),
-            ('PT-202611-0004', 4, 1200000, '2026-11-05 08:30:00', 'Nguyễn Văn An', 'CHUYEN_KHOAN', 3, 'Thanh toán phí 1 ô tô'),
-            ('PT-202611-0005', 10, 400000, '2026-11-06 14:15:00', 'Vũ Đức Thành', 'TIEN_MAT', 3, 'Nộp tạm ứng phí dịch vụ'),
-            ('PT-202611-0006', 12, 70000, '2026-11-06 14:15:00', 'Vũ Đức Thành', 'TIEN_MAT', 3, 'Nộp phí xe máy tháng 11')
-        ])
+        chi_tiet_records = []
+        for apt in active_apts:
+            ma_ho = apt['ma_ho']
+            dien_tich = apt['dien_tich']
+            xe = veh_counts.get(ma_ho, {'XE_MAY': 0, 'O_TO': 0, 'XE_DAP_DIEN': 0})
+
+            ratio = 1.0
+            if apt['so_can_ho'] == 'B0403':
+                ratio = 16.0 / 31.0
+
+            phi_dv = round(12000 * dien_tich * ratio)
+            phi_ql = round(7000 * dien_tich * ratio)
+            phi_xm = xe['XE_MAY'] * 70000
+            phi_oto = xe['O_TO'] * 1200000
+            tien_dien = int(350000 + (dien_tich * 4500))
+            tien_nuoc = int(90000 + (dien_tich * 1200))
+
+            is_paid_full = ma_ho in (1, 2, 4, 6, 8, 10, 18, 20, 27, 29)
+            is_paid_partial = ma_ho in (5, 9, 14, 23)
+
+            da_nop_dv = phi_dv if is_paid_full else (round(phi_dv * 0.5) if is_paid_partial else 0)
+            st_dv = 'DA_NOP_DU' if da_nop_dv >= phi_dv else ('NOP_THIEU' if da_nop_dv > 0 else 'CHUA_NOP')
+            chi_tiet_records.append((2, ma_ho, 1, phi_dv, da_nop_dv, st_dv, 'Phí dịch vụ T11'))
+
+            da_nop_ql = phi_ql if is_paid_full else 0
+            st_ql = 'DA_NOP_DU' if da_nop_ql >= phi_ql else 'CHUA_NOP'
+            chi_tiet_records.append((2, ma_ho, 2, phi_ql, da_nop_ql, st_ql, 'Phí quản lý T11'))
+
+            if phi_xm > 0:
+                da_nop_xm = phi_xm if (is_paid_full or is_paid_partial) else 0
+                st_xm = 'DA_NOP_DU' if da_nop_xm >= phi_xm else 'CHUA_NOP'
+                chi_tiet_records.append((2, ma_ho, 3, phi_xm, da_nop_xm, st_xm, f'Phí gửi {xe["XE_MAY"]} xe máy'))
+
+            if phi_oto > 0:
+                da_nop_oto = phi_oto if is_paid_full else 0
+                st_oto = 'DA_NOP_DU' if da_nop_oto >= phi_oto else 'CHUA_NOP'
+                chi_tiet_records.append((2, ma_ho, 4, phi_oto, da_nop_oto, st_oto, f'Phí gửi {xe["O_TO"]} ô tô'))
+
+            da_nop_dien = tien_dien if is_paid_full else 0
+            st_dien = 'DA_NOP_DU' if da_nop_dien >= tien_dien else 'CHUA_NOP'
+            chi_tiet_records.append((2, ma_ho, 5, tien_dien, da_nop_dien, st_dien, 'Hóa đơn EVN T11'))
+
+            da_nop_nuoc = tien_nuoc if is_paid_full else 0
+            st_nuoc = 'DA_NOP_DU' if da_nop_nuoc >= tien_nuoc else 'CHUA_NOP'
+            chi_tiet_records.append((2, ma_ho, 6, tien_nuoc, da_nop_nuoc, st_nuoc, 'Nước sạch T11'))
+
+            if ma_ho % 2 == 0:
+                chi_tiet_records.append((2, ma_ho, 7, 50000, 50000 if is_paid_full else 0, 'DA_NOP_DU' if is_paid_full else 'CHUA_NOP', 'Ủng hộ người nghèo'))
+
+        cursor.executemany("INSERT INTO CHI_TIET_THU (ma_dot, ma_ho, ma_kt, so_tien_phai_nop, so_tien_da_nop, trang_thai, ghi_chu) VALUES (?, ?, ?, ?, ?, ?, ?)", chi_tiet_records)
+
+        # Biên lai phiếu thu
+        paid_details = cursor.execute("""
+        SELECT ct.ma_ct, ct.so_tien_da_nop, ct.ghi_chu, h.so_can_ho, nk.ho_ten as ten_chu_ho
+        FROM CHI_TIET_THU ct
+        JOIN HO_KHAU h ON ct.ma_ho = h.ma_ho
+        LEFT JOIN NHAN_KHAU nk ON h.ma_chu_ho = nk.ma_nk
+        WHERE ct.so_tien_da_nop > 0
+        """).fetchall()
+
+        receipt_seq = 1
+        receipt_records = []
+        for p in paid_details:
+            ma_phieu = f"PT-202611-{receipt_seq:04d}"
+            receipt_seq += 1
+            nguoi_nop = p['ten_chu_ho'] or f"Chủ hộ {p['so_can_ho']}"
+            phuong_thuc = 'CHUYEN_KHOAN' if receipt_seq % 2 == 0 else 'TIEN_MAT'
+            receipt_records.append((
+                ma_phieu, p['ma_ct'], p['so_tien_da_nop'],
+                f"2026-11-0{min(9, (receipt_seq % 7) + 2)} 09:{10 + (receipt_seq % 45)}:00",
+                nguoi_nop, phuong_thuc, 4, p['ghi_chu'] or 'Thu phí kỳ tháng 11/2026'
+            ))
+
+        cursor.executemany("INSERT INTO PHIEU_THU (ma_phieu, ma_ct, so_tien, ngay_nop, nguoi_nop, phuong_thuc, ma_tk_thu, ghi_chu) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", receipt_records)
 
         conn.commit()
-        print(">>> Đã khởi tạo cơ sở dữ liệu mẫu Blue Moon thành công!")
+        print("[OK] Đã tự động khởi tạo cơ sở dữ liệu mở rộng Blue Moon (29 căn hộ, 80 cư dân, 49 xe)!")
 
     conn.close()
 
@@ -335,6 +582,13 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
             body = self.rfile.read(content_length)
             return json.loads(body.decode('utf-8'))
         return {}
+
+    def get_caller_role(self, body=None):
+        """Xác định vai trò của người gọi API từ Header HTTP hoặc Request Payload"""
+        role = self.headers.get('X-User-Role')
+        if not role and body and isinstance(body, dict):
+            role = body.get('caller_role') or body.get('user_role') or body.get('role')
+        return (role or '').strip().upper()
 
     # ----------------------------------------------------------------
     # XỬ LÝ GET REQUEST
@@ -691,6 +945,13 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
             ORDER BY pt.ngay_nop DESC
             """, (ma_ho,)).fetchall()]
 
+            proposals = [dict(r) for r in cursor.execute("""
+            SELECT yc.*, yc.ma_yc AS ma_kn, yc.phan_hoi AS phan_hoi_bqt 
+            FROM YEU_CAU_KIEN_NGHI yc 
+            WHERE yc.ma_ho = ? 
+            ORDER BY yc.ma_yc DESC
+            """, (ma_ho,)).fetchall()]
+
             conn.close()
             self.send_json({
                 "success": True,
@@ -699,9 +960,37 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
                     "members": members,
                     "vehicles": vehicles,
                     "bills": bills,
-                    "receipts": receipts
+                    "receipts": receipts,
+                    "proposals": proposals
                 }
             })
+            return
+
+        # 14. API: Danh sách Đề xuất & Kiến nghị cư dân gửi tới BQT / Admin
+        elif path == '/api/proposals':
+            conn = get_db()
+            cursor = conn.cursor()
+            ma_ho = query_params.get('ma_ho', [None])[0]
+            if ma_ho:
+                rows = cursor.execute("""
+                SELECT yc.*, yc.ma_yc AS ma_kn, yc.phan_hoi AS phan_hoi_bqt, h.so_can_ho, nk.ho_ten as ten_chu_ho
+                FROM YEU_CAU_KIEN_NGHI yc
+                JOIN HO_KHAU h ON yc.ma_ho = h.ma_ho
+                LEFT JOIN NHAN_KHAU nk ON h.ma_chu_ho = nk.ma_nk
+                WHERE yc.ma_ho = ?
+                ORDER BY yc.ma_yc DESC
+                """, (ma_ho,)).fetchall()
+            else:
+                rows = cursor.execute("""
+                SELECT yc.*, yc.ma_yc AS ma_kn, yc.phan_hoi AS phan_hoi_bqt, h.so_can_ho, nk.ho_ten as ten_chu_ho
+                FROM YEU_CAU_KIEN_NGHI yc
+                JOIN HO_KHAU h ON yc.ma_ho = h.ma_ho
+                LEFT JOIN NHAN_KHAU nk ON h.ma_chu_ho = nk.ma_nk
+                ORDER BY CASE yc.trang_thai WHEN 'CHO_DUYET' THEN 1 WHEN 'DANG_XU_LY' THEN 2 WHEN 'DA_DUYET' THEN 3 ELSE 4 END, yc.ma_yc DESC
+                """).fetchall()
+            proposals = [dict(r) for r in rows]
+            conn.close()
+            self.send_json({"success": True, "data": proposals})
             return
 
         # Mặc định: Phục vụ Static Files (Frontend HTML, CSS, JS)
@@ -742,8 +1031,87 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_json({"success": False, "message": "Tên đăng nhập hoặc mật khẩu không chính xác!"}, 401)
             return
 
-        # 2. API: Thêm Căn hộ mới (UC02)
+        # 1b. API: Đăng ký tài khoản mới (Dành cho Cư dân & Người dùng mới)
+        elif path == '/api/auth/register':
+            username = body.get('username', '').strip()
+            password = body.get('password', '').strip()
+            fullname = body.get('fullname', '').strip()
+            phone = body.get('phone', '').strip()
+            so_can_ho = body.get('so_can_ho', '').strip().upper()
+            role = body.get('role', 'CU_DAN')
+            so_cccd = body.get('so_cccd', '').strip() or None
+
+            if not username or not password or not fullname:
+                self.send_json({"success": False, "message": "Vui lòng nhập đầy đủ Tên đăng nhập, Mật khẩu và Họ tên!"}, 400)
+                return
+
+            if len(password) < 6:
+                self.send_json({"success": False, "message": "Mật khẩu bảo mật phải có ít nhất 6 ký tự!"}, 400)
+                return
+
+            conn = get_db()
+            cursor = conn.cursor()
+
+            existing = cursor.execute("SELECT ma_tk FROM NGUOI_DUNG WHERE ten_dang_nhap = ?", (username,)).fetchone()
+            if existing:
+                conn.close()
+                self.send_json({"success": False, "message": f"Tên đăng nhập '{username}' đã được đăng ký! Vui lòng chọn tên khác."}, 400)
+                return
+
+            ma_ho = None
+            if so_can_ho:
+                ho = cursor.execute("SELECT ma_ho FROM HO_KHAU WHERE so_can_ho = ?", (so_can_ho,)).fetchone()
+                if ho:
+                    ma_ho = ho['ma_ho']
+                else:
+                    cursor.execute("""
+                    INSERT INTO HO_KHAU (so_can_ho, dien_tich, so_tang, trang_thai, ngay_chuyen_den)
+                    VALUES (?, ?, ?, 'DANG_O', CURRENT_DATE)
+                    """, (so_can_ho, 75.0, 1))
+                    ma_ho = cursor.lastrowid
+
+            try:
+                cursor.execute("""
+                INSERT INTO NGUOI_DUNG (ten_dang_nhap, mat_khau, ho_ten, vai_tro, ma_ho, so_dien_thoai, trang_thai)
+                VALUES (?, ?, ?, ?, ?, ?, 'HOAT_DONG')
+                """, (username, password, fullname, role, ma_ho, phone))
+                new_user_id = cursor.lastrowid
+
+                # Tự động đồng bộ vào danh sách nhân khẩu nếu là cư dân
+                if role == 'CU_DAN' and ma_ho:
+                    nk = cursor.execute("SELECT ma_nk FROM NHAN_KHAU WHERE ma_ho = ? AND ho_ten = ?", (ma_ho, fullname)).fetchone()
+                    if not nk:
+                        cursor.execute("""
+                        INSERT INTO NHAN_KHAU (ma_ho, ho_ten, ngay_sinh, gioi_tinh, so_cccd, quan_he_chu_ho, so_dien_thoai)
+                        VALUES (?, ?, '1990-01-01', 'NAM', ?, 'Chủ hộ', ?)
+                        """, (ma_ho, fullname, so_cccd, phone))
+                        new_nk_id = cursor.lastrowid
+                        cursor.execute("UPDATE HO_KHAU SET ma_chu_ho = ? WHERE ma_ho = ? AND (ma_chu_ho IS NULL OR ma_chu_ho = '')", (new_nk_id, ma_ho))
+
+                conn.commit()
+                created = cursor.execute("""
+                SELECT ma_tk, ten_dang_nhap, ho_ten, vai_tro, ma_ho, so_dien_thoai, trang_thai
+                FROM NGUOI_DUNG WHERE ma_tk = ?
+                """, (new_user_id,)).fetchone()
+                conn.close()
+
+                self.send_json({
+                    "success": True,
+                    "message": f"Chúc mừng! Đăng ký tài khoản '{username}' thành công!",
+                    "user": dict(created)
+                }, 201)
+            except Exception as e:
+                conn.close()
+                self.send_json({"success": False, "message": f"Lỗi đăng ký tài khoản: {str(e)}"}, 500)
+            return
+
+        # 2. API: Thêm Căn hộ mới (UC02 - BQT & Admin)
         elif path == '/api/apartments':
+            caller_role = self.get_caller_role(body)
+            if caller_role in ('KE_TOAN', 'CU_DAN'):
+                self.send_json({"success": False, "message": "Thu ngân / Kế toán chỉ có quyền xem dữ liệu, không được thêm hoặc xóa căn hộ!"}, 403)
+                return
+
             so_can_ho = body.get('so_can_ho', '').strip().upper()
             dien_tich = float(body.get('dien_tich', 0))
             so_tang = int(body.get('so_tang', 1))
@@ -770,8 +1138,13 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_json({"success": False, "message": f"Số căn hộ {so_can_ho} đã tồn tại!"}, 400)
             return
 
-        # 3. API: Thêm Cư dân / Nhân khẩu (UC03)
+        # 3. API: Thêm Cư dân / Nhân khẩu (UC03 - BQT & Admin)
         elif path == '/api/residents':
+            caller_role = self.get_caller_role(body)
+            if caller_role in ('KE_TOAN', 'CU_DAN'):
+                self.send_json({"success": False, "message": "Thu ngân / Kế toán chỉ có quyền xem dữ liệu, không được thêm cư dân!"}, 403)
+                return
+
             ma_ho = body.get('ma_ho')
             ho_ten = body.get('ho_ten', '').strip()
             ngay_sinh = body.get('ngay_sinh')
@@ -805,8 +1178,16 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_json({"success": False, "message": f"Lỗi dữ liệu: Số CCCD có thể đã bị trùng ({str(e)})"}, 400)
             return
 
-        # 4. API: Đăng ký Tạm trú, Tạm vắng (UC04)
+        # 4. API: Đăng ký Tạm trú, Tạm vắng (UC04 - Chỉ Ban Quản Trị)
         elif path == '/api/temporary-residence':
+            caller_role = self.get_caller_role(body)
+            if caller_role == 'ADMIN':
+                self.send_json({"success": False, "message": "Quản trị viên (Admin) không có thẩm quyền đăng ký tạm trú / tạm vắng. Nghiệp vụ này do Ban Quản Trị trực tiếp phụ trách!"}, 403)
+                return
+            if caller_role in ('KE_TOAN', 'CU_DAN'):
+                self.send_json({"success": False, "message": "Bạn không có thẩm quyền đăng ký biến động tạm trú / tạm vắng!"}, 403)
+                return
+
             ma_nk = body.get('ma_nk')
             loai = body.get('loai', 'TAM_TRU')
             tu_ngay = body.get('tu_ngay')
@@ -828,8 +1209,13 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
             self.send_json({"success": True, "message": f"Đã ghi nhận đăng ký {loai} thành công!"})
             return
 
-        # 5. API: Đăng ký Phương tiện gửi xe (UC05)
+        # 5. API: Đăng ký Phương tiện gửi xe (UC05 - BQT & Admin)
         elif path == '/api/vehicles':
+            caller_role = self.get_caller_role(body)
+            if caller_role in ('KE_TOAN', 'CU_DAN'):
+                self.send_json({"success": False, "message": "Thu ngân chỉ có quyền xem dữ liệu phương tiện do BQT quản lý!"}, 403)
+                return
+
             ma_ho = body.get('ma_ho')
             loai_xe = body.get('loai_xe', 'XE_MAY')
             bien_so = body.get('bien_so', '').strip().upper()
@@ -841,17 +1227,26 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
 
             conn = get_db()
             cursor = conn.cursor()
-            cursor.execute("""
-            INSERT INTO PHUONG_TIEN (ma_ho, loai_xe, bien_so, ten_xe)
-            VALUES (?, ?, ?, ?)
-            """, (ma_ho, loai_xe, bien_so, ten_xe))
-            conn.commit()
-            conn.close()
-            self.send_json({"success": True, "message": f"Đã đăng ký phương tiện biển số {bien_so} thành công!"})
+            try:
+                cursor.execute("""
+                INSERT INTO PHUONG_TIEN (ma_ho, loai_xe, bien_so, ten_xe)
+                VALUES (?, ?, ?, ?)
+                """, (ma_ho, loai_xe, bien_so, ten_xe))
+                conn.commit()
+                conn.close()
+                self.send_json({"success": True, "message": f"Đã đăng ký phương tiện biển số {bien_so} thành công!"})
+            except sqlite3.IntegrityError:
+                conn.close()
+                self.send_json({"success": False, "message": f"Biển số {bien_so} đã được đăng ký trong hệ thống!"}, 400)
             return
 
-        # 6. API: Thêm / Sửa Khoản thu (UC06)
+        # 6. API: Thêm / Sửa Khoản thu (UC06 - BQT & Admin)
         elif path == '/api/fees':
+            caller_role = self.get_caller_role(body)
+            if caller_role in ('CU_DAN', 'KE_TOAN'):
+                self.send_json({"success": False, "message": "Chỉ Ban Quản Trị và Admin mới có quyền cấu hình danh mục khoản thu!"}, 403)
+                return
+
             ten_khoan_thu = body.get('ten_khoan_thu', '').strip()
             loai = body.get('loai', 'BAT_BUOC')
             cach_tinh = body.get('cach_tinh', 'THEO_DIEN_TICH')
@@ -1214,6 +1609,148 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
             })
             return
 
+        # 13. API: Cư dân gửi Yêu cầu / Đề xuất kiến nghị mới tới BQT
+        elif path == '/api/proposals':
+            ma_ho = body.get('ma_ho') or 6
+            tieu_de = body.get('tieu_de', '').strip()
+            loai_yeu_cau = str(body.get('loai_yeu_cau', 'KHAC')).strip().upper()
+            
+            # Chuẩn hóa nếu truyền mã có dấu tiếng Việt
+            loai_map = {
+                'SỬA CHỮA': 'SUA_CHUA', 'KỸ THUẬT': 'SUA_CHUA', 'AN NINH': 'AN_NINH',
+                'VỆ SINH': 'VE_SINH', 'THU PHÍ': 'THU_PHI', 'TIỆN ÍCH': 'TIEN_ICH'
+            }
+            loai_yeu_cau = loai_map.get(loai_yeu_cau, loai_yeu_cau)
+            if loai_yeu_cau not in ['SUA_CHUA', 'AN_NINH', 'VE_SINH', 'THU_PHI', 'TIEN_ICH', 'KHAC']:
+                loai_yeu_cau = 'KHAC'
+
+            noi_dung = body.get('noi_dung', '').strip()
+            nguoi_gui = body.get('nguoi_gui', '').strip() or 'Cư dân'
+
+            if not tieu_de or not noi_dung:
+                self.send_json({"success": False, "message": "Vui lòng nhập đầy đủ tiêu đề và nội dung kiến nghị!"}, 400)
+                return
+
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute("""
+            INSERT INTO YEU_CAU_KIEN_NGHI (ma_ho, tieu_de, loai_yeu_cau, noi_dung, nguoi_gui, trang_thai)
+            VALUES (?, ?, ?, ?, ?, 'CHO_DUYET')
+            """, (ma_ho, tieu_de, loai_yeu_cau, noi_dung, nguoi_gui))
+            conn.commit()
+            new_id = cursor.lastrowid
+            conn.close()
+            self.send_json({"success": True, "message": "Đã gửi đề xuất / kiến nghị tới Ban Quản Trị thành công!", "ma_yc": new_id, "ma_kn": new_id}, 201)
+            return
+
+        # 14. API: Admin / BQT duyệt & phản hồi Đề xuất kiến nghị
+        elif path == '/api/proposals/review':
+            ma_yc = body.get('ma_yc') or body.get('ma_kn')
+            trang_thai = body.get('trang_thai')
+            if trang_thai == 'HOAN_THANH':
+                trang_thai = 'DA_XU_LY'
+            phan_hoi = (body.get('phan_hoi') or body.get('phan_hoi_bqt') or '').strip()
+            nguoi_duyet = (body.get('nguoi_duyet') or 'Admin Quản Trị').strip()
+
+            if not ma_yc or not trang_thai:
+                self.send_json({"success": False, "message": "Thiếu mã yêu cầu hoặc trạng thái duyệt!"}, 400)
+                return
+
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute("""
+            UPDATE YEU_CAU_KIEN_NGHI
+            SET trang_thai = ?, phan_hoi = ?, nguoi_duyet = ?, ngay_duyet = CURRENT_TIMESTAMP
+            WHERE ma_yc = ?
+            """, (trang_thai, phan_hoi, nguoi_duyet, ma_yc))
+            conn.commit()
+            conn.close()
+            self.send_json({"success": True, "message": f"Đã cập nhật trạng thái đề xuất #{ma_yc} thành công!"})
+            return
+
+        # 15. API: Cư dân đăng ký thêm Thành viên gia đình
+        elif path == '/api/resident/members':
+            ma_ho = body.get('ma_ho')
+            ho_ten = body.get('ho_ten', '').strip()
+            ngay_sinh = body.get('ngay_sinh', '').strip()
+            gioi_tinh = body.get('gioi_tinh', 'NAM')
+            so_cccd = body.get('so_cccd', '').strip() or None
+            quan_he_chu_ho = body.get('quan_he_chu_ho', 'Thành viên')
+            so_dien_thoai = body.get('so_dien_thoai', '').strip()
+
+            if not ma_ho or not ho_ten or not ngay_sinh:
+                self.send_json({"success": False, "message": "Vui lòng nhập đầy đủ họ tên và ngày sinh của thành viên!"}, 400)
+                return
+
+            conn = get_db()
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                INSERT INTO NHAN_KHAU (ma_ho, ho_ten, ngay_sinh, gioi_tinh, so_cccd, quan_he_chu_ho, so_dien_thoai)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (ma_ho, ho_ten, ngay_sinh, gioi_tinh, so_cccd, quan_he_chu_ho, so_dien_thoai))
+                conn.commit()
+                new_id = cursor.lastrowid
+                conn.close()
+                self.send_json({"success": True, "message": f"Đã đăng ký thành viên '{ho_ten}' vào hộ gia đình thành công!", "ma_nk": new_id}, 201)
+            except sqlite3.IntegrityError:
+                conn.close()
+                self.send_json({"success": False, "message": f"Số CCCD '{so_cccd}' đã tồn tại trong hệ thống!"}, 400)
+            return
+
+        # 16. API: Cư dân đăng ký gửi Xe (Ô tô / Xe máy)
+        elif path == '/api/resident/vehicles':
+            ma_ho = body.get('ma_ho')
+            loai_xe = body.get('loai_xe', 'XE_MAY')
+            bien_so = body.get('bien_so', '').strip().upper()
+            ten_xe = body.get('ten_xe', '').strip()
+
+            if not ma_ho or not bien_so:
+                self.send_json({"success": False, "message": "Vui lòng nhập biển số xe đăng ký!"}, 400)
+                return
+
+            conn = get_db()
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                INSERT INTO PHUONG_TIEN (ma_ho, loai_xe, bien_so, ten_xe, ngay_dang_ky)
+                VALUES (?, ?, ?, ?, CURRENT_DATE)
+                """, (ma_ho, loai_xe, bien_so, ten_xe))
+                conn.commit()
+                new_id = cursor.lastrowid
+                conn.close()
+                self.send_json({"success": True, "message": f"Đã đăng ký gửi xe {bien_so} cho căn hộ thành công!", "ma_pt": new_id}, 201)
+            except sqlite3.IntegrityError:
+                conn.close()
+                self.send_json({"success": False, "message": f"Biển số {bien_so} đã được đăng ký trong hệ thống!"}, 400)
+            return
+
+        # 17. API: Cư dân cập nhật thông tin Căn hộ
+        elif path == '/api/resident/apartment':
+            ma_ho = body.get('ma_ho')
+            sdt_chu_ho = body.get('sdt_chu_ho', '').strip()
+            ten_chu_ho = body.get('ten_chu_ho', '').strip()
+
+            if not ma_ho:
+                self.send_json({"success": False, "message": "Thiếu mã căn hộ!"}, 400)
+                return
+
+            conn = get_db()
+            cursor = conn.cursor()
+            ho = cursor.execute("SELECT ma_chu_ho FROM HO_KHAU WHERE ma_ho = ?", (ma_ho,)).fetchone()
+            if ho and ho['ma_chu_ho']:
+                if sdt_chu_ho or ten_chu_ho:
+                    cursor.execute("""
+                    UPDATE NHAN_KHAU 
+                    SET so_dien_thoai = COALESCE(NULLIF(?, ''), so_dien_thoai),
+                        ho_ten = COALESCE(NULLIF(?, ''), ho_ten)
+                    WHERE ma_nk = ?
+                    """, (sdt_chu_ho, ten_chu_ho, ho['ma_chu_ho']))
+            conn.commit()
+            conn.close()
+            self.send_json({"success": True, "message": "Đã cập nhật thông tin liên hệ của căn hộ thành công!"})
+            return
+
         else:
             self.send_json({"success": False, "message": "Endpoint không tồn tại"}, 404)
 
@@ -1248,11 +1785,16 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_DELETE(self):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
+        caller_role = self.get_caller_role()
 
         conn = get_db()
         cursor = conn.cursor()
 
         if path.startswith('/api/apartments/'):
+            if caller_role in ('KE_TOAN', 'CU_DAN'):
+                conn.close()
+                self.send_json({"success": False, "message": "Thu ngân / Cư dân không có thẩm quyền xóa căn hộ!"}, 403)
+                return
             ma_ho = int(path.split('/')[-1])
             cursor.execute("DELETE FROM HO_KHAU WHERE ma_ho = ?", (ma_ho,))
             conn.commit()
@@ -1261,6 +1803,10 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
             return
 
         elif path.startswith('/api/residents/'):
+            if caller_role in ('KE_TOAN', 'CU_DAN'):
+                conn.close()
+                self.send_json({"success": False, "message": "Thu ngân / Cư dân không có thẩm quyền xóa nhân khẩu!"}, 403)
+                return
             ma_nk = int(path.split('/')[-1])
             cursor.execute("DELETE FROM NHAN_KHAU WHERE ma_nk = ?", (ma_nk,))
             conn.commit()
@@ -1269,6 +1815,10 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
             return
 
         elif path.startswith('/api/vehicles/'):
+            if caller_role in ('KE_TOAN', 'CU_DAN'):
+                conn.close()
+                self.send_json({"success": False, "message": "Thu ngân không có thẩm quyền hủy gửi xe của BQT!"}, 403)
+                return
             ma_pt = int(path.split('/')[-1])
             cursor.execute("DELETE FROM PHUONG_TIEN WHERE ma_pt = ?", (ma_pt,))
             conn.commit()
@@ -1277,6 +1827,10 @@ class BlueMoonRequestHandler(http.server.BaseHTTPRequestHandler):
             return
 
         elif path.startswith('/api/temporary-residence/'):
+            if caller_role in ('ADMIN', 'KE_TOAN', 'CU_DAN'):
+                conn.close()
+                self.send_json({"success": False, "message": "Nghiệp vụ tạm trú / tạm vắng do Ban Quản Trị trực tiếp phụ trách!"}, 403)
+                return
             ma_ttv = int(path.split('/')[-1])
             cursor.execute("DELETE FROM TAM_TRU_TAM_VANG WHERE ma_ttv = ?", (ma_ttv,))
             conn.commit()
@@ -1331,10 +1885,10 @@ if __name__ == '__main__':
     # Khởi tạo CSDL
     init_database()
     
-    # Khởi động Web Server
+    # Khởi động Web Server Đa luồng (ThreadingHTTPServer)
     handler = BlueMoonRequestHandler
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", PORT), handler) as httpd:
+    with http.server.ThreadingHTTPServer(("", PORT), handler) as httpd:
+        httpd.daemon_threads = True
         print(f"\n[OK] Máy chủ Web đang chạy tại: http://localhost:{PORT}")
         print(f"[OK] Mở trình duyệt web và truy cập địa chỉ trên để sử dụng.")
         print(f"[OK] Nhấn phím Ctrl + C để dừng máy chủ.\n")

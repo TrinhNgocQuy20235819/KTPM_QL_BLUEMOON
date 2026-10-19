@@ -8,13 +8,25 @@
  * ====================================================================
  */
 
-// Trạng thái ứng dụng toàn cục (App State)
+// ====================================================================
+// TRẠNG THÁI ỨNG DỤNG TOÀN CỤC (APP STATE & SESSION)
+// ====================================================================
+let initialUser = null;
+try {
+    const stored = localStorage.getItem('bmfm_user');
+    if (stored) initialUser = JSON.parse(stored);
+} catch (e) {
+    console.error("Lỗi đọc session user:", e);
+}
+
 const state = {
-    currentUser: {
-        id: 3,
-        username: 'ketoan_minh',
-        fullname: 'Nguyễn Hồng Minh',
-        role: 'KE_TOAN'
+    currentUser: initialUser || {
+        ma_tk: 4,
+        ten_dang_nhap: 'ketoan_minh',
+        ho_ten: 'Kế toán Nguyễn Hồng Minh',
+        vai_tro: 'KE_TOAN',
+        role: 'KE_TOAN',
+        fullname: 'Kế toán Nguyễn Hồng Minh'
     },
     apartments: [],
     residents: [],
@@ -22,6 +34,65 @@ const state = {
     periods: [],
     currentPeriodDetails: [],
     chartInstance: null
+};
+
+// Đồng bộ các thuộc tính tên gọi
+function syncUserProperties(u) {
+    if (!u) return u;
+    if (u.vai_tro && !u.role) u.role = u.vai_tro;
+    if (u.role && !u.vai_tro) u.vai_tro = u.role;
+    if (u.ho_ten && !u.fullname) u.fullname = u.ho_ten;
+    if (u.fullname && !u.ho_ten) u.ho_ten = u.fullname;
+    return u;
+}
+syncUserProperties(state.currentUser);
+
+// ====================================================================
+// MA TRẬN PHÂN QUYỀN HỆ THỐNG (ROLE-BASED ACCESS CONTROL - RBAC)
+// ====================================================================
+const ROLE_PERMISSIONS = {
+    ADMIN: {
+        name: 'Quản trị viên (Admin)',
+        badgeClass: 'role-admin',
+        badgeText: '👑 VAI TRÒ: QUẢN TRỊ VIÊN HỆ THỐNG (ADMIN)',
+        description: '<strong>Phạm vi quản trị:</strong> Toàn quyền quản trị hệ thống: Duyệt các đề xuất & kiến nghị của cư dân các phòng, Phân quyền cán bộ (UC11), Sao lưu & Phục hồi CSDL (UC12), Quản lý Căn hộ, Nhân khẩu, Phương tiện, Lập đợt thu và Báo cáo tài chính. <em>(Lưu ý: Nghiệp vụ đăng ký biến động tạm trú / tạm vắng do Ban Quản Trị trực tiếp phụ trách theo quy định).</em>',
+        allowedTabs: ['tab-dashboard', 'tab-apartments', 'tab-residents', 'tab-temporary', 'tab-vehicles', 'tab-fees', 'tab-periods', 'tab-utilities', 'tab-collection', 'tab-reports', 'tab-proposals', 'tab-users', 'tab-system', 'tab-resident-portal'],
+        defaultTab: 'tab-dashboard'
+    },
+    BAN_QUAN_TRI: {
+        name: 'Ban Quản Trị (BQT)',
+        badgeClass: 'role-bqt',
+        badgeText: '🏢 VAI TRÒ: BAN QUẢN TRỊ (BQT)',
+        description: '<strong>Phạm vi Ban Quản Trị:</strong> Quản lý toàn bộ Căn hộ & Hộ khẩu (UC02), Nhân khẩu cư dân (UC03), Trực tiếp thực hiện nghiệp vụ Đăng ký Tạm trú / Tạm vắng (UC04), Phương tiện gửi xe (UC05), Cấu hình danh mục khoản thu & đơn giá (UC06), Duyệt các đề xuất kiến nghị của cư dân các phòng gửi lên, Xem thống kê báo cáo (UC10) và Hỗ trợ cư dân qua Cổng cư dân.',
+        allowedTabs: ['tab-dashboard', 'tab-apartments', 'tab-residents', 'tab-temporary', 'tab-vehicles', 'tab-fees', 'tab-proposals', 'tab-reports', 'tab-resident-portal'],
+        defaultTab: 'tab-dashboard'
+    },
+    KE_TOAN: {
+        name: 'Kế toán / Thu ngân',
+        badgeClass: '',
+        badgeText: '💼 VAI TRÒ: KẾ TOÁN / THU NGÂN',
+        description: '<strong>Phạm vi Kế toán / Thu ngân:</strong> Quản lý các nội dung tài chính: Lập đợt thu tự động theo diện tích sàn, số xe & số ngày thực tế (UC07), Nhập tiền điện nước thu hộ (UC08), Thu tiền phí & In biên lai laser chuẩn (UC09), Xem công nợ và Báo cáo tài chính (UC10). <em>(Thu ngân có quyền xem các bảng Căn hộ, Phương tiện, Đơn giá do Ban Quản Trị quản lý; không có quyền thêm/sửa/xóa căn hộ hay cư dân).</em>',
+        allowedTabs: ['tab-dashboard', 'tab-apartments', 'tab-vehicles', 'tab-fees', 'tab-periods', 'tab-utilities', 'tab-collection', 'tab-reports'],
+        defaultTab: 'tab-dashboard'
+    },
+    CU_DAN: {
+        name: 'Cư dân / Chủ hộ',
+        badgeClass: 'role-cudan',
+        badgeText: '🏡 VAI TRÒ: CƯ DÂN / CHỦ HỘ',
+        description: '<strong>Phạm vi Cư dân / Chủ hộ:</strong> Xem thông tin căn hộ, Cập nhật thông tin liên hệ căn hộ, Đăng ký thành viên gia đình, Đăng ký phương tiện (ô tô, xe máy), Gửi đề xuất/kiến nghị tới Ban Quản Trị, Tra cứu hóa đơn các khoản phí, Nộp tiền online qua VietQR 24/7 và Xuất hóa đơn điện tử online chuẩn VAT.',
+        allowedTabs: ['tab-resident-portal', 'tab-fees'],
+        defaultTab: 'tab-resident-portal'
+    }
+};
+
+const TEST_ACCOUNTS = {
+    'ADMIN': { username: 'admin', pass: 'admin123' },
+    'BAN_QUAN_TRI': { username: 'bqt_truongban', pass: 'bqt123' },
+    'KE_TOAN': { username: 'ketoan_minh', pass: 'ketoan123' },
+    'cudan_a1205': { username: 'cudan_a1205', pass: '123456' },
+    'cudan_b1104': { username: 'cudan_b1104', pass: '123456' },
+    'cudan_b0402': { username: 'cudan_b0402', pass: '123456' },
+    'cudan_a1801': { username: 'cudan_a1801', pass: '123456' }
 };
 
 // ====================================================================
@@ -85,7 +156,6 @@ function numberToVietnameseWords(num) {
     }
 
     let result = words.join(' ').trim();
-    // Viết hoa chữ cái đầu và thêm đuôi đồng chẵn
     result = result.charAt(0).toUpperCase() + result.slice(1) + ' đồng chẵn.';
     return result;
 }
@@ -95,6 +165,7 @@ function numberToVietnameseWords(num) {
  */
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
+    if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
@@ -129,87 +200,172 @@ function closeModal(modalId) {
 }
 
 // ====================================================================
-// ĐIỀU HƯỚNG TAB & PHÂN QUYỀN (ROLES & TABS)
+// XỬ LÝ PHÂN QUYỀN VAI TRÒ & ĐIỀU HƯỚNG TAB
 // ====================================================================
 
-function initNavigation() {
+/**
+ * Áp dụng phân quyền RBAC lên toàn bộ giao diện
+ */
+function applyRolePermissions(role) {
+    syncUserProperties(state.currentUser);
+    const userRole = role || state.currentUser.role || 'KE_TOAN';
+    state.currentUser.role = userRole;
+    state.currentUser.vai_tro = userRole;
+
+    const perm = ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS['KE_TOAN'];
+
+    // 1. Ẩn/Hiện Menu Sidebar & các nút hành động phân quyền trên toàn trang
+    document.querySelectorAll('[data-roles]').forEach(el => {
+        const rolesAttr = el.getAttribute('data-roles') || '';
+        const rolesList = rolesAttr.split(',').map(s => s.trim());
+        if (rolesList.includes(userRole)) {
+            el.style.display = '';
+        } else {
+            el.style.display = 'none';
+        }
+    });
+
+    // 2. Cập nhật Thẻ hiển thị thông tin người dùng ở góc dưới Sidebar
+    const avatarEl = document.getElementById('user-avatar');
+    const nameEl = document.getElementById('user-name');
+    const badgeEl = document.getElementById('user-role-badge');
+
+    if (avatarEl) {
+        if (userRole === 'ADMIN') avatarEl.textContent = 'AD';
+        else if (userRole === 'BAN_QUAN_TRI') avatarEl.textContent = 'BQT';
+        else if (userRole === 'KE_TOAN') avatarEl.textContent = 'KT';
+        else avatarEl.textContent = 'CD';
+    }
+
+    if (nameEl) {
+        nameEl.textContent = state.currentUser.fullname || state.currentUser.ho_ten || 'Người dùng';
+    }
+
+    if (badgeEl) {
+        badgeEl.textContent = perm.name;
+    }
+
+    // 3. Cập nhật Role Permission Banner
+    const banner = document.getElementById('role-permission-banner');
+    const bannerBadge = document.getElementById('banner-role-badge');
+    const bannerDesc = document.getElementById('banner-role-desc');
+
+    if (banner) {
+        banner.classList.remove('role-admin', 'role-bqt', 'role-cudan');
+        if (perm.badgeClass) banner.classList.add(perm.badgeClass);
+    }
+    if (bannerBadge) {
+        bannerBadge.textContent = perm.badgeText;
+    }
+    if (bannerDesc) {
+        bannerDesc.innerHTML = perm.description;
+    }
+
+    // 4. Đồng bộ nút Topbar Auth
+    const btnAuth = document.getElementById('btn-topbar-auth');
+    if (btnAuth) {
+        btnAuth.textContent = `👤 ${state.currentUser.ten_dang_nhap || state.currentUser.username}`;
+    }
+
+    // 5. Kiểm tra nếu Tab đang hiển thị không hợp lệ với quyền -> Chuyển sang Tab mặc định
+    const currentActivePane = document.querySelector('.tab-pane.active');
+    const currentTabId = currentActivePane ? currentActivePane.id : '';
+
+    if (!perm.allowedTabs.includes(currentTabId)) {
+        switchTab(perm.defaultTab);
+    } else {
+        // Tải lại dữ liệu cho tab hiện tại
+        loadTabData(currentTabId);
+    }
+}
+
+/**
+ * Chuyển tab có kiểm tra phân quyền chặt chẽ
+ */
+function switchTab(targetTab) {
+    const role = state.currentUser.role || 'KE_TOAN';
+    const perm = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS['KE_TOAN'];
     const navItems = document.querySelectorAll('.sidebar-menu .nav-item');
     const tabPanes = document.querySelectorAll('.tab-pane');
     const pageHeading = document.getElementById('page-heading');
 
+    // Nếu tab không nằm trong danh sách quyền -> Báo lỗi Access Denied
+    if (!perm.allowedTabs.includes(targetTab)) {
+        tabPanes.forEach(pane => pane.classList.remove('active'));
+        const deniedPane = document.getElementById('tab-access-denied');
+        if (deniedPane) deniedPane.classList.add('active');
+        if (pageHeading) pageHeading.textContent = 'Truy Cập Bị Từ Chối (403)';
+
+        const msgEl = document.getElementById('access-denied-message');
+        if (msgEl) {
+            msgEl.innerHTML = `Tài khoản của bạn hiện đang đăng nhập với vai trò <strong>${perm.name}</strong>. Phân hệ chức năng này không nằm trong phạm vi quyền hạn được cấp phép. Bạn chỉ có quyền truy cập: <em>${perm.allowedTabs.join(', ')}</em>.`;
+        }
+        navItems.forEach(i => i.classList.remove('active'));
+        return;
+    }
+
+    // Cập nhật trạng thái active trên sidebar
+    navItems.forEach(i => {
+        if (i.getAttribute('data-tab') === targetTab) {
+            i.classList.add('active');
+            const titleSpan = i.querySelector('span:last-child');
+            if (titleSpan && pageHeading) {
+                pageHeading.textContent = titleSpan.textContent;
+            }
+        } else {
+            i.classList.remove('active');
+        }
+    });
+
+    // Chuyển tab hiển thị
+    tabPanes.forEach(pane => {
+        pane.classList.remove('active');
+        if (pane.id === targetTab) {
+            pane.classList.add('active');
+        }
+    });
+
+    // Gọi tải dữ liệu tương ứng
+    loadTabData(targetTab);
+}
+
+/**
+ * Khởi tạo điều hướng thanh Sidebar và Topbar
+ */
+function initNavigation() {
+    const navItems = document.querySelectorAll('.sidebar-menu .nav-item');
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const targetTab = item.getAttribute('data-tab');
-
-            // Cập nhật trạng thái active trên sidebar
-            navItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-
-            // Chuyển tab hiển thị
-            tabPanes.forEach(pane => {
-                pane.classList.remove('active');
-                if (pane.id === targetTab) {
-                    pane.classList.add('active');
-                }
-            });
-
-            // Cập nhật tiêu đề Topbar
-            const titleSpan = item.querySelector('span:last-child');
-            if (titleSpan) {
-                pageHeading.textContent = titleSpan.textContent;
-            }
-
-            // Gọi tải lại dữ liệu của tab tương ứng
-            loadTabData(targetTab);
+            switchTab(targetTab);
         });
     });
 
-    // Xử lý chuyển đổi vai trò (Role Switcher)
+    // Nút quay lại từ màn hình Access Denied
+    document.getElementById('btn-back-to-allowed')?.addEventListener('click', () => {
+        const role = state.currentUser.role || 'KE_TOAN';
+        const perm = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS['KE_TOAN'];
+        switchTab(perm.defaultTab);
+    });
+
+    // Xử lý chuyển đổi vai trò (Role Switcher trên Topbar để test nhanh)
     const roleSwitcher = document.getElementById('role-switcher');
-    roleSwitcher.addEventListener('change', (e) => {
+    roleSwitcher?.addEventListener('change', async (e) => {
         const val = e.target.value;
-        state.currentUser.role = val;
-        const roleNames = {
-            'ADMIN': 'Quản trị viên (Admin)',
-            'BAN_QUAN_TRI': 'Ban quản trị (BQT)',
-            'KE_TOAN': 'Kế toán / Thu ngân',
-            'CU_DAN': 'Cư dân / Chủ hộ (A1205)'
-        };
-        document.getElementById('user-role-badge').textContent = roleNames[val] || val;
-
-        if (val === 'CU_DAN') {
-            state.currentUser.id = 4;
-            state.currentUser.fullname = 'Nguyễn Văn An (Chủ hộ A1205)';
-            state.currentUser.ma_ho = 1;
-            document.getElementById('user-name').textContent = 'Nguyễn Văn An (A1205)';
-            document.getElementById('user-avatar').textContent = 'AN';
-
-            // Ẩn bớt các mục quản trị hệ thống, chuyển sang tab Cổng cư dân
-            document.querySelectorAll('[data-role-section]').forEach(el => el.style.display = 'none');
-            const portalNav = document.getElementById('nav-resident-portal');
-            if (portalNav) portalNav.click();
-            showToast('Đã chuyển sang Cổng Thông Tin Dành Cho Cư Dân (A1205)!', 'success');
+        const targetAcc = TEST_ACCOUNTS[val];
+        if (targetAcc) {
+            await quickLogin(targetAcc.username, targetAcc.pass);
         } else {
-            // Hiện lại toàn bộ menu quản trị
-            document.querySelectorAll('[data-role-section]').forEach(el => el.style.display = '');
-            if (val === 'ADMIN') {
-                state.currentUser.fullname = 'Quản trị viên Hệ thống';
-                document.getElementById('user-avatar').textContent = 'AD';
-            } else if (val === 'BAN_QUAN_TRI') {
-                state.currentUser.fullname = 'Trưởng Ban Quản Trị';
-                document.getElementById('user-avatar').textContent = 'BQT';
-            } else {
-                state.currentUser.fullname = 'Kế toán Nguyễn Hồng Minh';
-                document.getElementById('user-avatar').textContent = 'KT';
-            }
-            document.getElementById('user-name').textContent = state.currentUser.fullname;
-            showToast(`Đã chuyển sang vai trò: ${roleNames[val]}`, 'info');
+            state.currentUser.role = val;
+            state.currentUser.vai_tro = val;
+            applyRolePermissions(val);
+            showToast(`Đã chuyển sang vai trò: ${ROLE_PERMISSIONS[val]?.name || val}`, 'info');
         }
     });
 
     // Theme toggle (Dark / Light)
     const themeBtn = document.getElementById('theme-toggle');
-    themeBtn.addEventListener('click', () => {
+    themeBtn?.addEventListener('click', () => {
         const html = document.documentElement;
         const currentTheme = html.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -221,7 +377,7 @@ function initNavigation() {
 function loadTabData(tabId) {
     switch (tabId) {
         case 'tab-resident-portal':
-            loadResidentPortal(state.currentUser.ma_ho || 1);
+            loadResidentPortal(state.currentUser.ma_ho || 6);
             break;
         case 'tab-dashboard':
             loadDashboard();
@@ -253,12 +409,168 @@ function loadTabData(tabId) {
         case 'tab-reports':
             loadReports();
             break;
+        case 'tab-proposals':
+            loadAdminProposals();
+            break;
         case 'tab-users':
             loadUsers();
             break;
         case 'tab-system':
-            // Sẵn sàng cho thao tác backup/restore
             break;
+    }
+}
+
+// ====================================================================
+// XỬ LÝ ĐĂNG NHẬP, ĐĂNG KÝ VÀ PHIÊN LÀM VIỆC (AUTH CONTROLLER)
+// ====================================================================
+
+function openAuthModal(tab = 'login') {
+    openModal('modal-auth');
+    switchAuthTab(tab);
+    loadApartmentsForRegister();
+}
+
+function switchAuthTab(tab) {
+    const btnLogin = document.getElementById('btn-tab-login');
+    const btnReg = document.getElementById('btn-tab-register');
+    const contentLogin = document.getElementById('auth-content-login');
+    const contentReg = document.getElementById('auth-content-register');
+
+    if (tab === 'login') {
+        btnLogin?.classList.add('active');
+        btnReg?.classList.remove('active');
+        contentLogin?.classList.add('active');
+        contentReg?.classList.remove('active');
+    } else {
+        btnReg?.classList.add('active');
+        btnLogin?.classList.remove('active');
+        contentReg?.classList.add('active');
+        contentLogin?.classList.remove('active');
+        loadApartmentsForRegister();
+    }
+}
+
+function togglePasswordVisibility(inputId) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+}
+
+/**
+ * Xử lý đăng nhập bằng tài khoản & mật khẩu
+ */
+async function handleLoginSubmit() {
+    const username = document.getElementById('login-username')?.value.trim();
+    const password = document.getElementById('login-password')?.value.trim();
+
+    if (!username || !password) {
+        showToast('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!', 'error');
+        return;
+    }
+
+    try {
+        const res = await API.auth.login(username, password);
+        if (res.success) {
+            state.currentUser = syncUserProperties(res.user);
+            localStorage.setItem('bmfm_user', JSON.stringify(res.user));
+            closeModal('modal-auth');
+            applyRolePermissions(res.user.vai_tro || res.user.role);
+            showToast(`Đăng nhập thành công! Chào mừng ${res.user.ho_ten}`, 'success');
+        } else {
+            showToast(res.message || 'Đăng nhập thất bại!', 'error');
+        }
+    } catch (err) {
+        showToast(err.message || 'Lỗi kết nối máy chủ!', 'error');
+    }
+}
+
+/**
+ * Đăng nhập nhanh 1-Click phục vụ kiểm thử
+ */
+async function quickLogin(username, password) {
+    const uInput = document.getElementById('login-username');
+    const pInput = document.getElementById('login-password');
+    if (uInput) uInput.value = username;
+    if (pInput) pInput.value = password;
+    await handleLoginSubmit();
+}
+
+/**
+ * Xử lý đăng ký tài khoản cư dân mới
+ */
+async function handleRegisterSubmit() {
+    const username = document.getElementById('reg-username')?.value.trim();
+    const fullname = document.getElementById('reg-fullname')?.value.trim();
+    const password = document.getElementById('reg-password')?.value.trim();
+    const confirmPassword = document.getElementById('reg-password-confirm')?.value.trim();
+    const soCanHo = document.getElementById('reg-apartment')?.value;
+    const phone = document.getElementById('reg-phone')?.value.trim();
+    const cccd = document.getElementById('reg-cccd')?.value.trim();
+
+    if (!username || !fullname || !password || !soCanHo || !phone) {
+        showToast('Vui lòng điền đầy đủ các thông tin bắt buộc (*)!', 'error');
+        return;
+    }
+
+    if (password.length < 6) {
+        showToast('Mật khẩu bảo mật phải có ít nhất 6 ký tự!', 'error');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showToast('Mật khẩu nhập lại không trùng khớp!', 'error');
+        return;
+    }
+
+    try {
+        const res = await API.auth.register({
+            username,
+            password,
+            fullname,
+            phone,
+            so_can_ho: soCanHo,
+            so_cccd: cccd,
+            role: 'CU_DAN'
+        });
+
+        if (res.success) {
+            state.currentUser = syncUserProperties(res.user);
+            localStorage.setItem('bmfm_user', JSON.stringify(res.user));
+            closeModal('modal-auth');
+            applyRolePermissions('CU_DAN');
+            showToast(`Đăng ký thành công! Chào mừng Cư dân ${fullname} (Căn ${soCanHo})`, 'success');
+        } else {
+            showToast(res.message || 'Đăng ký không thành công!', 'error');
+        }
+    } catch (err) {
+        showToast(err.message || 'Lỗi kết nối khi đăng ký!', 'error');
+    }
+}
+
+/**
+ * Đăng xuất tài khoản
+ */
+function handleLogout() {
+    localStorage.removeItem('bmfm_user');
+    showToast('Đã đăng xuất khỏi hệ thống.', 'info');
+    openAuthModal('login');
+}
+
+/**
+ * Tải danh sách căn hộ vào dropdown đăng ký
+ */
+async function loadApartmentsForRegister() {
+    const select = document.getElementById('reg-apartment');
+    if (!select) return;
+    try {
+        const res = await API.apartments.getAll();
+        if (res.success && res.data) {
+            select.innerHTML = '<option value="">-- Vui lòng chọn căn hộ cư trú --</option>' +
+                res.data.map(a => `<option value="${a.so_can_ho}">Căn ${a.so_can_ho} (Tầng ${a.so_tang} • ${a.dien_tich} m² • ${a.trang_thai === 'DANG_O' ? 'Đang ở' : 'Trống/Thuê'})</option>`).join('');
+        }
+    } catch (e) {
+        console.error("Lỗi nạp căn hộ cho đăng ký:", e);
     }
 }
 
@@ -399,6 +711,10 @@ function renderApartmentsTable(apartments) {
         const badgeClass = apt.trang_thai === 'DANG_O' ? 'badge-success' : (apt.trang_thai === 'CHO_THUE' ? 'badge-warning' : 'badge-neutral');
         const statusText = apt.trang_thai === 'DANG_O' ? 'Đang ở' : (apt.trang_thai === 'CHO_THUE' ? 'Cho thuê' : 'Còn trống');
 
+        const actionBtn = (state.currentUser.role === 'KE_TOAN') 
+            ? `<span class="badge badge-neutral" title="Thu ngân chỉ xem dữ liệu do Ban Quản Trị quản lý">👁️ Chỉ xem</span>`
+            : `<button class="btn btn-sm btn-danger" onclick="deleteApartment(${apt.ma_ho}, '${apt.so_can_ho}')">Xóa</button>`;
+
         tr.innerHTML = `
             <td><strong>${apt.so_can_ho}</strong></td>
             <td>${apt.dien_tich} m²</td>
@@ -408,9 +724,7 @@ function renderApartmentsTable(apartments) {
             <td>🛵 ${apt.so_xe_may} xe máy | 🚗 ${apt.so_o_to} ô tô</td>
             <td>${apt.ngay_chuyen_den || '2026-01-01'}</td>
             <td><span class="badge ${badgeClass}">${statusText}</span></td>
-            <td>
-                <button class="btn btn-sm btn-danger" onclick="deleteApartment(${apt.ma_ho}, '${apt.so_can_ho}')">Xóa</button>
-            </td>
+            <td>${actionBtn}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -551,6 +865,10 @@ async function loadVehicles() {
             const price = isCar ? '1.200.000 đ/tháng' : (v.loai_xe === 'XE_MAY' ? '70.000 đ/tháng' : '40.000 đ/tháng');
             const typeText = isCar ? '🚗 Ô tô' : (v.loai_xe === 'XE_MAY' ? '🛵 Xe máy' : '🚲 Xe đạp điện');
 
+            const actionBtn = (state.currentUser.role === 'KE_TOAN') 
+                ? `<span class="badge badge-neutral" title="Thu ngân chỉ xem dữ liệu do Ban Quản Trị quản lý">👁️ Chỉ xem</span>`
+                : `<button class="btn btn-sm btn-danger" onclick="deleteVehicle(${v.ma_pt}, '${v.bien_so}')">Hủy gửi xe</button>`;
+
             tr.innerHTML = `
                 <td><code><strong>${v.bien_so}</strong></code></td>
                 <td>${typeText}</td>
@@ -558,9 +876,7 @@ async function loadVehicles() {
                 <td><span class="badge badge-primary">Căn ${v.so_can_ho}</span></td>
                 <td>${v.ten_chu_ho || '---'}</td>
                 <td><strong style="color:var(--primary);">${price}</strong></td>
-                <td>
-                    <button class="btn btn-sm btn-danger" onclick="deleteVehicle(${v.ma_pt}, '${v.bien_so}')">Hủy gửi xe</button>
-                </td>
+                <td>${actionBtn}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -1041,9 +1357,9 @@ async function loadResidentPortal(maHo = 1) {
                 }
 
                 const payBtn = isPaid 
-                    ? `<button class="btn btn-sm btn-secondary" disabled>Đã xong</button>`
+                    ? `<button class="btn btn-sm btn-info" onclick="exportOnlineInvoiceFromBill(${JSON.stringify(b).replace(/"/g, '&quot;')})">🧾 Hóa đơn điện tử</button>`
                     : `<button class="btn btn-sm btn-success" onclick="openOnlinePayment(${b.ma_ct}, '${b.ten_khoan_thu}', ${b.con_no}, '${apt.so_can_ho}')">
-                         📲 Đóng Online
+                         📲 Nộp tiền Online
                        </button>`;
 
                 tr.innerHTML = `
@@ -1061,7 +1377,7 @@ async function loadResidentPortal(maHo = 1) {
             });
         }
 
-        // Bảng lịch sử phiếu thu
+        // Bảng lịch sử phiếu thu & Hóa đơn điện tử online
         const tbodyReceipts = document.getElementById('res-receipts-tbody');
         tbodyReceipts.innerHTML = '';
         if (data.receipts.length === 0) {
@@ -1077,9 +1393,14 @@ async function loadResidentPortal(maHo = 1) {
                     <td>${r.ngay_nop}</td>
                     <td><span class="badge badge-primary">${r.phuong_thuc === 'CHUYEN_KHOAN' ? 'Chuyển khoản VietQR' : 'Tiền mặt'}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-primary" onclick="previewReceipt(${JSON.stringify(r).replace(/"/g, '&quot;')})">
-                            📄 Xem biên lai
-                        </button>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-sm btn-primary" onclick="previewReceipt(${JSON.stringify(r).replace(/"/g, '&quot;')})">
+                                📄 Biên lai
+                            </button>
+                            <button class="btn btn-sm btn-info" onclick="previewInvoice(${JSON.stringify(r).replace(/"/g, '&quot;')})">
+                                🧾 Hóa Đơn Online
+                            </button>
+                        </div>
                     </td>
                 `;
                 tbodyReceipts.appendChild(tr);
@@ -1118,6 +1439,39 @@ async function loadResidentPortal(maHo = 1) {
             });
         }
 
+        // Bảng kiến nghị & đề xuất của căn hộ gửi tới Ban Quản Trị
+        const tbodyProposals = document.getElementById('res-proposals-tbody');
+        if (tbodyProposals) {
+            tbodyProposals.innerHTML = '';
+            const proposals = data.proposals || [];
+            if (proposals.length === 0) {
+                tbodyProposals.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:16px;">Căn hộ chưa gửi đề xuất, kiến nghị nào tới Ban Quản Trị.</td></tr>`;
+            } else {
+                proposals.forEach(p => {
+                    const tr = document.createElement('tr');
+                    let badgeClass = 'badge-pending';
+                    let statusText = 'Chờ BQT duyệt';
+                    if (p.trang_thai === 'DA_DUYET') { badgeClass = 'badge-approved'; statusText = 'Đã duyệt'; }
+                    else if (p.trang_thai === 'DANG_XU_LY') { badgeClass = 'badge-processing'; statusText = 'Đang xử lý'; }
+                    else if (p.trang_thai === 'HOAN_THANH') { badgeClass = 'badge-completed'; statusText = 'Đã hoàn thành'; }
+                    else if (p.trang_thai === 'TU_CHOI') { badgeClass = 'badge-rejected'; statusText = 'Từ chối'; }
+
+                    tr.innerHTML = `
+                        <td><code>KN-${p.ma_kn}</code></td>
+                        <td><strong>${p.tieu_de}</strong></td>
+                        <td><span class="badge badge-neutral">${p.loai_yeu_cau}</span></td>
+                        <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                        <td>${p.ngay_gui}</td>
+                        <td>
+                            <div style="font-size:12.5px;">${p.phan_hoi_bqt || '<span style="color:var(--text-muted)">BQT chưa phản hồi</span>'}</div>
+                            ${p.nguoi_duyet ? `<div style="font-size:11px; color:var(--primary); margin-top:2px;">Duyệt bởi: <strong>${p.nguoi_duyet}</strong> (${p.ngay_duyet || ''})</div>` : ''}
+                        </td>
+                    `;
+                    tbodyProposals.appendChild(tr);
+                });
+            }
+        }
+
     } catch (e) {
         showToast(`Lỗi nạp thông tin cư dân: ${e.message}`, 'error');
     }
@@ -1138,6 +1492,333 @@ function openOnlinePayment(maCt, feeTitle, amount, soCanHo) {
     document.getElementById('vietqr-img').src = qrUrl;
 
     openModal('modal-resident-pay');
+}
+
+// ====================================================================
+// CHỨC NĂNG CƯ DÂN: CẬP NHẬT CĂN HỘ, THÀNH VIÊN, XE, ĐỀ XUẤT
+// ====================================================================
+
+function openResidentApartmentModal() {
+    if (!currentResidentPortalData || !currentResidentPortalData.apartment) return;
+    const apt = currentResidentPortalData.apartment;
+    const codeEl = document.getElementById('res-apt-code');
+    const areaEl = document.getElementById('res-apt-area');
+    const ownerEl = document.getElementById('res-apt-owner');
+    const phoneEl = document.getElementById('res-apt-phone');
+
+    if (codeEl) codeEl.value = apt.so_can_ho || '';
+    if (areaEl) areaEl.value = apt.dien_tich || '';
+    if (ownerEl) ownerEl.value = apt.ten_chu_ho || '';
+    if (phoneEl) phoneEl.value = apt.sdt_chu_ho || '';
+    openModal('modal-resident-apartment');
+}
+
+async function handleUpdateResidentApartment() {
+    const phone = document.getElementById('res-apt-phone')?.value.trim();
+    const owner = document.getElementById('res-apt-owner')?.value.trim();
+
+    try {
+        const res = await API.resident.updateApartment({
+            so_dien_thoai: phone,
+            ten_chu_ho: owner
+        });
+        showToast(res.message, 'success');
+        closeModal('modal-resident-apartment');
+        loadResidentPortal(state.currentUser.ma_ho || 6);
+        loadApartments();
+    } catch (e) {
+        showToast(`Lỗi cập nhật căn hộ: ${e.message}`, 'error');
+    }
+}
+
+function openResidentMemberModal() {
+    document.getElementById('form-resident-member')?.reset();
+    openModal('modal-resident-member');
+}
+
+async function handleAddResidentMember() {
+    const hoTen = document.getElementById('res-mem-name')?.value.trim();
+    const quanHe = document.getElementById('res-mem-relation')?.value;
+    const gioiTinh = document.getElementById('res-mem-gender')?.value;
+    const ngaySinh = document.getElementById('res-mem-dob')?.value;
+    const soCccd = document.getElementById('res-mem-cccd')?.value.trim();
+    const sdt = document.getElementById('res-mem-phone')?.value.trim();
+
+    if (!hoTen || !quanHe || !ngaySinh) {
+        showToast('Vui lòng nhập họ tên, quan hệ và ngày sinh!', 'error');
+        return;
+    }
+
+    try {
+        const res = await API.resident.addMember({
+            ho_ten: hoTen,
+            quan_he_chu_ho: quanHe,
+            gioi_tinh: gioiTinh,
+            ngay_sinh: ngaySinh,
+            so_cccd: soCccd,
+            so_dien_thoai: sdt
+        });
+        showToast(res.message, 'success');
+        closeModal('modal-resident-member');
+        document.getElementById('form-resident-member')?.reset();
+        loadResidentPortal(state.currentUser.ma_ho || 6);
+        loadApartments();
+        loadResidents();
+    } catch (e) {
+        showToast(`Lỗi thêm thành viên: ${e.message}`, 'error');
+    }
+}
+
+function openResidentVehicleModal() {
+    document.getElementById('form-resident-vehicle')?.reset();
+    openModal('modal-resident-vehicle');
+}
+
+async function handleAddResidentVehicle() {
+    const loaiXe = document.getElementById('res-veh-type')?.value;
+    const bienSo = document.getElementById('res-veh-plate')?.value.trim().toUpperCase();
+    const tenXe = document.getElementById('res-veh-model')?.value.trim();
+
+    if (!bienSo || !loaiXe) {
+        showToast('Vui lòng nhập biển số và chọn loại phương tiện!', 'error');
+        return;
+    }
+
+    try {
+        const res = await API.resident.addVehicle({
+            loai_xe: loaiXe,
+            bien_so: bienSo,
+            ten_xe: tenXe
+        });
+        showToast(res.message, 'success');
+        closeModal('modal-resident-vehicle');
+        document.getElementById('form-resident-vehicle')?.reset();
+        loadResidentPortal(state.currentUser.ma_ho || 6);
+        loadVehicles();
+        loadApartments();
+    } catch (e) {
+        showToast(`Lỗi đăng ký xe: ${e.message}`, 'error');
+    }
+}
+
+function openResidentProposalModal() {
+    document.getElementById('form-resident-proposal')?.reset();
+    const senderEl = document.getElementById('res-prop-sender');
+    if (senderEl) {
+        senderEl.value = (currentResidentPortalData?.apartment?.ten_chu_ho || state.currentUser.fullname || '') + 
+                         ` (Căn ${currentResidentPortalData?.apartment?.so_can_ho || ''})`;
+    }
+    openModal('modal-resident-proposal');
+}
+
+async function handleAddResidentProposal() {
+    const tieuDe = document.getElementById('res-prop-title')?.value.trim();
+    const loaiYeuCau = document.getElementById('res-prop-type')?.value;
+    const noiDung = document.getElementById('res-prop-content')?.value.trim();
+
+    if (!tieuDe || !noiDung) {
+        showToast('Vui lòng nhập tiêu đề và nội dung kiến nghị/đề xuất!', 'error');
+        return;
+    }
+
+    try {
+        const res = await API.proposals.create({
+            tieu_de: tieuDe,
+            loai_yeu_cau: loaiYeuCau,
+            noi_dung: noiDung,
+            nguoi_gui: currentResidentPortalData?.apartment?.ten_chu_ho || state.currentUser.fullname,
+            sdt_nguoi_gui: currentResidentPortalData?.apartment?.sdt_chu_ho || state.currentUser.so_dien_thoai
+        });
+        showToast(res.message, 'success');
+        closeModal('modal-resident-proposal');
+        document.getElementById('form-resident-proposal')?.reset();
+        loadResidentPortal(state.currentUser.ma_ho || 6);
+    } catch (e) {
+        showToast(`Lỗi gửi đề xuất: ${e.message}`, 'error');
+    }
+}
+
+// ====================================================================
+// QUẢN LÝ DUYỆT ĐỀ XUẤT & KIẾN NGHỊ DÀNH CHO ADMIN & BAN QUẢN TRỊ
+// ====================================================================
+let adminProposalsList = [];
+let currentFilterProposalStatus = 'ALL';
+
+async function loadAdminProposals() {
+    try {
+        const res = await API.proposals.getAll();
+        adminProposalsList = res.data || [];
+        filterAdminProposals(currentFilterProposalStatus);
+    } catch (e) {
+        showToast(`Lỗi nạp danh sách đề xuất: ${e.message}`, 'error');
+    }
+}
+
+function filterAdminProposals(status) {
+    currentFilterProposalStatus = status;
+    document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active'));
+    if (status === 'ALL') document.getElementById('filter-proposals-all')?.classList.add('active');
+    else if (status === 'CHO_DUYET') document.getElementById('filter-proposals-pending')?.classList.add('active');
+    else if (status === 'DA_DUYET') document.getElementById('filter-proposals-approved')?.classList.add('active');
+    else if (status === 'TU_CHOI') document.getElementById('filter-proposals-rejected')?.classList.add('active');
+
+    let filtered = adminProposalsList;
+    if (status !== 'ALL') {
+        filtered = adminProposalsList.filter(p => p.trang_thai === status);
+    }
+    renderAdminProposals(filtered);
+}
+
+function renderAdminProposals(list) {
+    const tbody = document.getElementById('admin-proposals-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:24px;">Không có đề xuất hoặc kiến nghị nào phù hợp với bộ lọc.</td></tr>`;
+        return;
+    }
+
+    list.forEach(p => {
+        const tr = document.createElement('tr');
+        let badgeClass = 'badge-pending';
+        let statusText = 'Chờ BQT duyệt';
+        if (p.trang_thai === 'DA_DUYET') { badgeClass = 'badge-approved'; statusText = 'Đã duyệt'; }
+        else if (p.trang_thai === 'DANG_XU_LY') { badgeClass = 'badge-processing'; statusText = 'Đang xử lý'; }
+        else if (p.trang_thai === 'DA_XU_LY' || p.trang_thai === 'HOAN_THANH') { badgeClass = 'badge-completed'; statusText = 'Đã xử lý'; }
+        else if (p.trang_thai === 'TU_CHOI') { badgeClass = 'badge-rejected'; statusText = 'Từ chối'; }
+
+        const idVal = p.ma_yc || p.ma_kn;
+        const replyVal = p.phan_hoi || p.phan_hoi_bqt;
+
+        tr.innerHTML = `
+            <td><code>KN-${idVal}</code></td>
+            <td>
+                <strong>Căn ${p.so_can_ho}</strong>
+                <div style="font-size:12px; color:var(--text-muted);">${p.nguoi_gui || ''} ${p.sdt_nguoi_gui ? `(${p.sdt_nguoi_gui})` : ''}</div>
+            </td>
+            <td>
+                <strong>${p.tieu_de}</strong>
+                <div style="font-size:12.5px; color:var(--text-secondary); margin-top:3px; max-width:320px; white-space:normal; line-height:1.4;">${p.noi_dung}</div>
+            </td>
+            <td><span class="badge badge-neutral">${p.loai_yeu_cau}</span></td>
+            <td>${p.ngay_gui}</td>
+            <td><span class="badge ${badgeClass}">${statusText}</span></td>
+            <td>
+                <div style="font-size:12.5px;">${replyVal || '<span style="color:var(--text-muted)">Chưa có phản hồi</span>'}</div>
+                ${p.nguoi_duyet ? `<div style="font-size:11px; color:var(--primary); margin-top:2px;">Duyệt: <strong>${p.nguoi_duyet}</strong></div>` : ''}
+            </td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="openReviewProposalModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+                    ✍️ Duyệt & Trả lời
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function openReviewProposalModal(proposal) {
+    const idEl = document.getElementById('rev-prop-id');
+    const aptEl = document.getElementById('rev-prop-apt');
+    const senderEl = document.getElementById('rev-prop-sender');
+    const dateEl = document.getElementById('rev-prop-date');
+    const titleEl = document.getElementById('rev-prop-title');
+    const contentEl = document.getElementById('rev-prop-content');
+    const statusEl = document.getElementById('rev-prop-status');
+    const replyEl = document.getElementById('rev-prop-reply');
+
+    if (idEl) idEl.value = proposal.ma_yc || proposal.ma_kn;
+    if (aptEl) aptEl.textContent = proposal.so_can_ho || 'A1205';
+    if (senderEl) senderEl.textContent = `${proposal.nguoi_gui || ''} ${proposal.sdt_nguoi_gui ? `(${proposal.sdt_nguoi_gui})` : ''}`;
+    if (dateEl) dateEl.textContent = proposal.ngay_gui || '';
+    if (titleEl) titleEl.textContent = proposal.tieu_de || '';
+    if (contentEl) contentEl.textContent = proposal.noi_dung || '';
+    if (statusEl) statusEl.value = proposal.trang_thai;
+    if (replyEl) replyEl.value = proposal.phan_hoi || proposal.phan_hoi_bqt || '';
+
+    openModal('modal-review-proposal');
+}
+
+async function handleSaveProposalReview() {
+    const maKn = document.getElementById('rev-prop-id')?.value;
+    const status = document.getElementById('rev-prop-status')?.value;
+    const reply = document.getElementById('rev-prop-reply')?.value.trim();
+
+    if (!reply) {
+        showToast('Vui lòng nhập nội dung ý kiến hoặc giải pháp phản hồi cho cư dân!', 'error');
+        return;
+    }
+
+    try {
+        const res = await API.proposals.review({
+            ma_yc: maKn,
+            ma_kn: maKn,
+            trang_thai: status,
+            phan_hoi: reply,
+            phan_hoi_bqt: reply,
+            nguoi_duyet: state.currentUser.fullname || 'Admin Quản Trị'
+        });
+        showToast(res.message, 'success');
+        closeModal('modal-review-proposal');
+        loadAdminProposals();
+    } catch (e) {
+        showToast(`Lỗi duyệt đề xuất: ${e.message}`, 'error');
+    }
+}
+
+// ====================================================================
+// HÓA ĐƠN ĐIỆN TỬ ONLINE CHUẨN VAT (E-INVOICE VIEWER & PRINT)
+// ====================================================================
+function previewInvoice(data) {
+    const invCode = data.ma_phieu ? `INV-2026-${String(data.ma_phieu).padStart(6, '0')}` : `INV-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+    const lookupCode = (data.ma_phieu ? `BM${data.ma_phieu}` : `BM${Date.now()}`).toUpperCase().slice(0, 10);
+    const amount = Number(data.so_tien || data.so_tien_phai_nop || data.so_tien_da_nop || 0);
+    const aptNumber = data.so_can_ho || (currentResidentPortalData?.apartment?.so_can_ho) || 'A1205';
+    const customerName = data.nguoi_nop || (currentResidentPortalData?.apartment?.ten_chu_ho) || state.currentUser.fullname || 'Cư dân Blue Moon';
+    const feeName = data.ten_khoan_thu || 'Phí quản lý & dịch vụ vận hành chung cư';
+    const paymentMethod = data.phuong_thuc === 'CHUYEN_KHOAN' ? 'Chuyển khoản (VietQR Napas 24/7)' : 'Tiền mặt';
+    const dateStr = data.ngay_nop || new Date().toISOString().slice(0, 10);
+
+    // Điền dữ liệu vào Hóa Đơn Điện Tử
+    document.getElementById('inv-code').textContent = invCode;
+    document.getElementById('inv-lookup-code').textContent = lookupCode;
+    document.getElementById('inv-date').textContent = dateStr;
+    document.getElementById('inv-customer-name').textContent = customerName;
+    document.getElementById('inv-customer-apt').textContent = `Căn hộ ${aptNumber} - Chung cư cao cấp Blue Moon`;
+    document.getElementById('inv-payment-method').textContent = paymentMethod;
+
+    document.getElementById('inv-item-name').textContent = feeName;
+    document.getElementById('inv-item-unit').textContent = 'Tháng / Gói';
+    document.getElementById('inv-item-qty').textContent = '1';
+    document.getElementById('inv-item-price').textContent = formatVND(amount);
+    document.getElementById('inv-item-amount').textContent = formatVND(amount);
+
+    document.getElementById('inv-subtotal').textContent = formatVND(amount);
+    document.getElementById('inv-tax-amount').textContent = '0 đ (KCT - Không chịu thuế GTGT)';
+    document.getElementById('inv-total').textContent = formatVND(amount);
+    document.getElementById('inv-words').textContent = numberToVietnameseWords(amount);
+
+    document.getElementById('inv-signer-name').textContent = 'BAN QUẢN TRỊ CHUNG CƯ BLUE MOON';
+    document.getElementById('inv-sign-date').textContent = dateStr;
+
+    openModal('modal-invoice-preview');
+}
+
+function exportOnlineInvoiceFromBill(bill) {
+    previewInvoice({
+        ma_phieu: bill.ma_ct,
+        ten_khoan_thu: bill.ten_khoan_thu,
+        so_tien: bill.so_tien_da_nop > 0 ? bill.so_tien_da_nop : bill.so_tien_phai_nop,
+        nguoi_nop: currentResidentPortalData?.apartment?.ten_chu_ho || state.currentUser.fullname,
+        so_can_ho: currentResidentPortalData?.apartment?.so_can_ho,
+        phuong_thuc: 'CHUYEN_KHOAN',
+        ngay_nop: new Date().toISOString().slice(0, 10)
+    });
+}
+
+function printInvoice() {
+    window.print();
 }
 
 // ====================================================================
@@ -1399,6 +2080,29 @@ function initFormListeners() {
         );
         renderResidentsTable(filtered);
     });
+
+    // 12. Nghiệp vụ Cổng Cư Dân: Cập nhật căn hộ, Thêm thành viên, Xe & Kiến nghị
+    document.getElementById('btn-res-edit-apartment')?.addEventListener('click', openResidentApartmentModal);
+    document.getElementById('btn-save-res-apartment')?.addEventListener('click', handleUpdateResidentApartment);
+
+    document.getElementById('btn-res-add-member')?.addEventListener('click', openResidentMemberModal);
+    document.getElementById('btn-save-res-member')?.addEventListener('click', handleAddResidentMember);
+
+    document.getElementById('btn-res-add-vehicle')?.addEventListener('click', openResidentVehicleModal);
+    document.getElementById('btn-save-res-vehicle')?.addEventListener('click', handleAddResidentVehicle);
+
+    document.getElementById('btn-res-add-proposal')?.addEventListener('click', openResidentProposalModal);
+    document.getElementById('btn-save-res-proposal')?.addEventListener('click', handleAddResidentProposal);
+
+    // 13. Nghiệp vụ Duyệt Đề Xuất & Kiến Nghị (Admin & BQT)
+    document.getElementById('filter-proposals-all')?.addEventListener('click', () => filterAdminProposals('ALL'));
+    document.getElementById('filter-proposals-pending')?.addEventListener('click', () => filterAdminProposals('CHO_DUYET'));
+    document.getElementById('filter-proposals-approved')?.addEventListener('click', () => filterAdminProposals('DA_DUYET'));
+    document.getElementById('filter-proposals-rejected')?.addEventListener('click', () => filterAdminProposals('TU_CHOI'));
+    document.getElementById('btn-save-review-proposal')?.addEventListener('click', handleSaveProposalReview);
+
+    // 14. In hóa đơn điện tử online
+    document.getElementById('btn-print-invoice')?.addEventListener('click', printInvoice);
 }
 
 // ====================================================================
@@ -1409,13 +2113,18 @@ document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initFormListeners();
 
-    // Hiển thị thông tin người dùng mẫu
-    document.getElementById('user-name').textContent = state.currentUser.fullname;
+    // 1. Đồng bộ và áp dụng ma trận phân quyền RBAC
+    applyRolePermissions(state.currentUser.role);
 
-    // Nạp dữ liệu ban đầu
-    loadDashboard();
-    loadApartments();
-    loadResidents();
-    loadFees();
-    loadPeriods();
+    // 2. Tải dữ liệu ban đầu phù hợp với quyền hạn của vai trò
+    if (state.currentUser.role === 'CU_DAN') {
+        loadResidentPortal(state.currentUser.ma_ho || 6);
+        loadFees();
+    } else {
+        loadDashboard();
+        loadApartments();
+        loadResidents();
+        loadFees();
+        loadPeriods();
+    }
 });

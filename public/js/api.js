@@ -15,8 +15,15 @@ const API = {
      */
     async request(endpoint, options = {}) {
         const url = `${API_BASE_URL}${endpoint}`;
+        let userRole = '';
+        try {
+            const u = JSON.parse(localStorage.getItem('bmfm_user') || '{}');
+            userRole = u.vai_tro || u.role || '';
+        } catch(e) {}
+
         const headers = {
             'Content-Type': 'application/json',
+            ...(userRole ? { 'X-User-Role': userRole } : {}),
             ...(options.headers || {})
         };
 
@@ -41,6 +48,11 @@ const API = {
             API.request('/api/auth/login', {
                 method: 'POST',
                 body: JSON.stringify({ username, password })
+            }),
+        register: (data) =>
+            API.request('/api/auth/register', {
+                method: 'POST',
+                body: JSON.stringify(data)
             })
     },
 
@@ -192,6 +204,36 @@ const API = {
     resident: {
         getPortal: (ma_ho = 1) => API.request(`/api/resident/portal?ma_ho=${ma_ho}`),
         payOnline: (data) => API.request('/api/resident/pay-online', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+        addMember: (data) => API.request('/api/resident/members', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+        addVehicle: (data) => API.request('/api/resident/vehicles', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+        updateApartment: (data) => API.request('/api/resident/apartment', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        })
+    },
+
+    // ----------------------------------------------------------------
+    // 14. ĐỀ XUẤT & KIẾN NGHỊ CƯ DÂN (GỬI & DUYỆT ĐỀ XUẤT)
+    // ----------------------------------------------------------------
+    proposals: {
+        getAll: (ma_ho = '') => {
+            const query = ma_ho ? `?ma_ho=${ma_ho}` : '';
+            return API.request(`/api/proposals${query}`);
+        },
+        create: (data) => API.request('/api/proposals', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+        review: (data) => API.request('/api/proposals/review', {
             method: 'POST',
             body: JSON.stringify(data)
         })

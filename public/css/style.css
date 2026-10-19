@@ -940,3 +940,465 @@ body {
         margin-left: 0;
     }
 }
+
+/* ====================================================================
+   PHÂN HỆ XÁC THỰC, PHÂN QUYỀN RBAC & ROLE BANNER
+   ==================================================================== */
+
+/* Role Permission Banner ngay dưới Topbar */
+.role-permission-banner {
+    margin: 16px 28px 0 28px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(14, 165, 233, 0.08));
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.role-permission-banner.role-admin {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(245, 158, 11, 0.08));
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.role-permission-banner.role-bqt {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.08));
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.role-permission-banner.role-cudan {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(14, 165, 233, 0.08));
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.banner-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--primary);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.role-admin .banner-badge { background: #dc2626; }
+.role-bqt .banner-badge { background: #7c3aed; }
+.role-cudan .banner-badge { background: #059669; }
+
+.banner-text {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    flex: 1;
+    line-height: 1.5;
+}
+
+.banner-text strong {
+    color: var(--text-primary);
+}
+
+/* Tab Access Denied (Từ chối truy cập) */
+.access-denied-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+    margin: 40px auto;
+    max-width: 680px;
+}
+
+.access-denied-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    animation: pulseIcon 2s infinite ease-in-out;
+}
+
+@keyframes pulseIcon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+/* Nút & Phím chức năng Topbar */
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-outline:hover {
+    background: var(--primary-light);
+}
+
+.btn-danger-subtle {
+    background: var(--danger-light);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: var(--radius-md);
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-danger-subtle:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-sidebar-logout {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    transition: var(--transition);
+    margin-left: auto;
+}
+
+.btn-sidebar-logout:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+/* ====================================================================
+   MODAL ĐĂNG NHẬP & ĐĂNG KÝ (AUTH DIALOG)
+   ==================================================================== */
+.auth-dialog {
+    max-width: 540px !important;
+    padding: 0;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.auth-card-header {
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    color: white;
+    padding: 24px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.auth-logo-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.auth-logo-icon {
+    font-size: 36px;
+    background: rgba(255, 255, 255, 0.15);
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+}
+
+.auth-brand-title {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.auth-brand-subtitle {
+    font-size: 12px;
+    opacity: 0.85;
+    margin-top: 3px;
+}
+
+.auth-card-header .modal-close {
+    color: white;
+    font-size: 28px;
+    opacity: 0.8;
+}
+
+.auth-card-header .modal-close:hover {
+    opacity: 1;
+}
+
+/* Thanh chuyển tab Đăng nhập / Đăng ký */
+.auth-tab-bar {
+    display: flex;
+    background: var(--bg-subtle);
+    border-bottom: 1px solid var(--border-color);
+    padding: 6px 12px 0;
+    gap: 8px;
+}
+
+.auth-tab-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: var(--transition);
+}
+
+.auth-tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.auth-tab-content {
+    display: none;
+    padding: 26px 28px;
+    background: var(--bg-surface);
+}
+
+.auth-tab-content.active {
+    display: block;
+    animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Input có Icon */
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon .input-icon {
+    position: absolute;
+    left: 12px;
+    font-size: 16px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.input-with-icon .form-control {
+    padding-left: 38px;
+    padding-right: 42px;
+    width: 100%;
+}
+
+.btn-toggle-pwd {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 4px;
+    opacity: 0.6;
+}
+
+.btn-toggle-pwd:hover {
+    opacity: 1;
+}
+
+/* Khu vực Đăng nhập nhanh 1-Click */
+.quick-login-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border-color);
+}
+
+.quick-login-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quick-login-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.quick-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    text-align: left;
+    transition: var(--transition);
+}
+
+.quick-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.quick-btn .q-icon {
+    font-size: 22px;
+}
+
+.quick-btn .q-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.quick-btn .q-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.quick-btn .q-role {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.quick-btn.admin:hover { border-color: #ef4444; background: rgba(239, 68, 68, 0.08); }
+.quick-btn.bqt:hover { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.08); }
+.quick-btn.ketoan:hover { border-color: #2563eb; background: rgba(37, 99, 235, 0.08); }
+.quick-btn.cudan:hover { border-color: #10b981; background: rgba(16, 185, 129, 0.08); }
+.quick-btn.cudan.warning:hover { border-color: #f59e0b; background: rgba(245, 158, 11, 0.08); }
+
+/* ====================================================================
+   ĐỀ XUẤT KIẾN NGHỊ CƯ DÂN & HÓA ĐƠN ĐIỆN TỬ (E-INVOICE)
+   ==================================================================== */
+
+/* Nhóm nút lọc trạng thái */
+.filter-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.filter-group .btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Badges cho trạng thái đề xuất */
+.badge-pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-approved {
+    background: rgba(59, 130, 246, 0.15);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badge-processing {
+    background: rgba(139, 92, 246, 0.15);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.badge-completed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-rejected {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Hóa đơn điện tử E-Invoice Laser */
+.e-invoice-card {
+    background: white;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-lg);
+    padding: 32px 36px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    max-width: 680px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.e-invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 18px;
+    margin-bottom: 20px;
+}
+
+.e-invoice-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1e3a8a;
+    letter-spacing: 0.02em;
+}
+
+.e-invoice-sub {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.e-invoice-code {
+    text-align: right;
+    font-size: 13px;
+    color: #334155;
+}
+
+.e-invoice-stamp {
+    position: absolute;
+    right: 40px;
+    bottom: 50px;
+    border: 2px solid #16a34a;
+    color: #16a34a;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    border-radius: 8px;
+    letter-spacing: 0.05em;
+    transform: rotate(-10deg);
+    background: rgba(22, 163, 74, 0.06);
+    pointer-events: none;
+}
+
+.res-action-btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+

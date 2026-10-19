@@ -28,64 +28,70 @@
             </div>
 
             <nav class="sidebar-menu">
-                <div class="menu-category">DÀNH CHO CƯ DÂN / KHÁCH</div>
-                <a class="nav-item" data-tab="tab-resident-portal" id="nav-resident-portal">
+                <div class="menu-category" data-roles="CU_DAN,ADMIN,BAN_QUAN_TRI">DÀNH CHO CƯ DÂN</div>
+                <a class="nav-item" data-tab="tab-resident-portal" id="nav-resident-portal" data-roles="CU_DAN,ADMIN,BAN_QUAN_TRI">
                     <span class="icon">📱</span>
                     <span>Cổng Cư Dân & Đóng Tiền</span>
                 </a>
 
-                <div class="menu-category" data-role-section="admin-bqt">TỔNG QUAN BAN QUẢN LÝ</div>
-                <a class="nav-item active" data-tab="tab-dashboard">
+                <div class="menu-category" data-roles="ADMIN,BAN_QUAN_TRI,KE_TOAN">TỔNG QUAN BAN QUẢN LÝ</div>
+                <a class="nav-item active" data-tab="tab-dashboard" data-roles="ADMIN,BAN_QUAN_TRI,KE_TOAN">
                     <span class="icon">📊</span>
                     <span>Bảng điều khiển (Dashboard)</span>
                 </a>
 
-                <div class="menu-category" data-role-section="admin-bqt">QUẢN LÝ DÂN CƯ & CĂN HỘ</div>
-                <a class="nav-item" data-tab="tab-apartments">
+                <div class="menu-category" data-roles="ADMIN,BAN_QUAN_TRI,KE_TOAN">QUẢN LÝ DÂN CƯ & CĂN HỘ</div>
+                <a class="nav-item" data-tab="tab-apartments" data-roles="ADMIN,BAN_QUAN_TRI,KE_TOAN">
                     <span class="icon">🏠</span>
                     <span>Căn hộ & Hộ khẩu (UC02)</span>
                 </a>
-                <a class="nav-item" data-tab="tab-residents">
+                <a class="nav-item" data-tab="tab-residents" data-roles="ADMIN,BAN_QUAN_TRI">
                     <span class="icon">👥</span>
                     <span>Nhân khẩu cư dân (UC03)</span>
                 </a>
-                <a class="nav-item" data-tab="tab-temporary">
+                <a class="nav-item" data-tab="tab-temporary" data-roles="ADMIN,BAN_QUAN_TRI">
                     <span class="icon">📝</span>
                     <span>Tạm trú & Tạm vắng (UC04)</span>
                 </a>
-                <a class="nav-item" data-tab="tab-vehicles">
+                <a class="nav-item" data-tab="tab-vehicles" data-roles="ADMIN,BAN_QUAN_TRI,KE_TOAN">
                     <span class="icon">🛵</span>
                     <span>Phương tiện gửi xe (UC05)</span>
                 </a>
 
-                <div class="menu-category" data-role-section="admin-bqt">KẾ TOÁN & THU PHÍ</div>
-                <a class="nav-item" data-tab="tab-fees">
+                <div class="menu-category" data-roles="ADMIN,BAN_QUAN_TRI,KE_TOAN,CU_DAN">KẾ TOÁN & THU PHÍ</div>
+                <a class="nav-item" data-tab="tab-fees" data-roles="ADMIN,BAN_QUAN_TRI,KE_TOAN,CU_DAN">
                     <span class="icon">🏷️</span>
                     <span>Danh mục khoản thu (UC06)</span>
                 </a>
-                <a class="nav-item" data-tab="tab-periods">
+                <a class="nav-item" data-tab="tab-periods" data-roles="ADMIN,KE_TOAN">
                     <span class="icon">📅</span>
                     <span>Lập đợt thu phí (UC07)</span>
                 </a>
-                <a class="nav-item" data-tab="tab-utilities">
+                <a class="nav-item" data-tab="tab-utilities" data-roles="ADMIN,KE_TOAN">
                     <span class="icon">⚡</span>
                     <span>Điện nước thu hộ (UC08)</span>
                 </a>
-                <a class="nav-item" data-tab="tab-collection">
+                <a class="nav-item" data-tab="tab-collection" data-roles="ADMIN,KE_TOAN">
                     <span class="icon">💰</span>
                     <span>Thu phí & In biên lai (UC09)</span>
                 </a>
-                <a class="nav-item" data-tab="tab-reports">
+                <a class="nav-item" data-tab="tab-reports" data-roles="ADMIN,BAN_QUAN_TRI,KE_TOAN">
                     <span class="icon">📈</span>
                     <span>Thống kê & Báo cáo (UC10)</span>
                 </a>
 
-                <div class="menu-category" data-role-section="admin-only">QUẢN TRỊ HỆ THỐNG</div>
-                <a class="nav-item" data-tab="tab-users">
+                <div class="menu-category" data-roles="ADMIN,BAN_QUAN_TRI">TƯƠNG TÁC CƯ DÂN</div>
+                <a class="nav-item" data-tab="tab-proposals" data-roles="ADMIN,BAN_QUAN_TRI">
+                    <span class="icon">📩</span>
+                    <span>Duyệt Đề Xuất & Kiến Nghị</span>
+                </a>
+
+                <div class="menu-category" data-roles="ADMIN">QUẢN TRỊ HỆ THỐNG</div>
+                <a class="nav-item" data-tab="tab-users" data-roles="ADMIN">
                     <span class="icon">🛡️</span>
                     <span>Phân quyền cán bộ (UC11)</span>
                 </a>
-                <a class="nav-item" data-tab="tab-system">
+                <a class="nav-item" data-tab="tab-system" data-roles="ADMIN">
                     <span class="icon">💾</span>
                     <span>Sao lưu & Dữ liệu (UC12)</span>
                 </a>
@@ -98,6 +104,7 @@
                         <div class="name" id="user-name">Đang tải...</div>
                         <span class="role-badge" id="user-role-badge">Kế toán</span>
                     </div>
+                    <button class="btn-sidebar-logout" id="btn-sidebar-logout" title="Đăng xuất khỏi hệ thống" onclick="handleLogout()">🚪</button>
                 </div>
             </div>
         </aside>
@@ -112,22 +119,64 @@
                     <h2 class="page-title" id="page-heading">Bảng Điều Khiển Tổng Quan</h2>
                 </div>
                 <div class="topbar-right">
+                    <!-- Nút Đăng nhập / Đổi tài khoản -->
+                    <button class="btn btn-outline" id="btn-topbar-auth" onclick="openAuthModal('login')" style="font-size: 13px; font-weight: 600; padding: 7px 14px;">
+                        🔑 Đăng Nhập / Đăng Ký
+                    </button>
+
                     <!-- Giả lập chuyển đổi vai trò (Role-Switcher để test RBAC nhanh) -->
-                    <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Vai trò thử nghiệm:</label>
-                    <select class="role-switcher-select" id="role-switcher">
-                        <option value="KE_TOAN">Kế toán / Thu ngân</option>
-                        <option value="BAN_QUAN_TRI">Ban quản trị (BQT)</option>
-                        <option value="ADMIN">Quản trị viên (Admin)</option>
-                        <option value="CU_DAN">Cư dân / Chủ hộ (A1205)</option>
-                    </select>
+                    <div class="role-switcher-wrap" style="display: flex; align-items: center; gap: 6px;">
+                        <label style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Vai trò thử nghiệm:</label>
+                        <select class="role-switcher-select" id="role-switcher">
+                            <option value="ADMIN">👑 Quản trị viên (Admin)</option>
+                            <option value="BAN_QUAN_TRI">🏢 Ban Quản Trị (BQT)</option>
+                            <option value="KE_TOAN" selected>💼 Kế toán / Thu ngân</option>
+                            <option value="cudan_a1205">🏡 Cư dân A1205 (Nguyễn Văn An - VietQR)</option>
+                            <option value="cudan_b1104">🏡 Cư dân B1104 (Trịnh Ngọc Quý)</option>
+                            <option value="cudan_b0402">🏡 Cư dân B0402 (Phạm Quỳnh Nga - Nợ)</option>
+                            <option value="cudan_a1801">🏡 Cư dân A1801 (Vương Đình Quang - Penthouse)</option>
+                        </select>
+                    </div>
+
+                    <!-- Nút Đăng xuất -->
+                    <button class="btn btn-danger-subtle" id="btn-topbar-logout" title="Đăng xuất tài khoản" onclick="handleLogout()">
+                        🚪 Đăng xuất
+                    </button>
 
                     <!-- Chuyển đổi Dark / Light Theme -->
                     <button class="btn-icon" id="theme-toggle" title="Chuyển chế độ sáng/tối">🌓</button>
                 </div>
             </header>
 
+            <!-- THANH THÔNG BÁO QUYỀN HẠN THEO VAI TRÒ (ROLE PERMISSION BANNER) -->
+            <div class="role-permission-banner" id="role-permission-banner">
+                <div class="banner-badge" id="banner-role-badge">💼 VAI TRÒ: KẾ TOÁN / THU NGÂN</div>
+                <div class="banner-text" id="banner-role-desc">
+                    <strong>Phạm vi quyền hạn:</strong> Bạn có quyền Lập đợt thu tự động (UC07), Nhập tiền điện nước thu hộ (UC08), Thu phí trực tiếp & Xuất biên lai laser (UC09) và Thống kê tài chính. <em>(Thông tin nhân thân CCCD cư dân và Quản trị hệ thống được bảo mật).</em>
+                </div>
+            </div>
+
             <!-- VÙNG CÁC TAB CHỨC NĂNG (CONTENT AREA) -->
             <main class="content-area">
+
+                <!-- TAB TỪ CHỐI TRUY CẬP (ACCESS DENIED CHO RBAC) -->
+                <section class="tab-pane" id="tab-access-denied">
+                    <div class="access-denied-container">
+                        <div class="access-denied-icon">🛡️</div>
+                        <h2 style="font-size: 24px; font-weight: 800; color: var(--danger); margin-bottom: 8px;">TRUY CẬP BỊ TỪ CHỐI (ACCESS DENIED - 403)</h2>
+                        <p id="access-denied-message" style="font-size: 15px; color: var(--text-secondary); max-width: 600px; margin: 0 auto 24px; line-height: 1.6;">
+                            Tài khoản của bạn hiện đang đăng nhập với vai trò <strong>Cư Dân</strong>. Bạn không có quyền truy cập vào phân hệ quản lý này vì lý do bảo mật dữ liệu toàn chung cư.
+                        </p>
+                        <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+                            <button class="btn btn-primary" id="btn-back-to-allowed">
+                                📱 Quay Về Phân Hệ Được Phép Của Bạn
+                            </button>
+                            <button class="btn btn-secondary" onclick="openAuthModal('login')">
+                                🔑 Đăng Nhập Bằng Tài Khoản Khác
+                            </button>
+                        </div>
+                    </div>
+                </section>
 
                 <!-- 1. TAB DASHBOARD TỔNG QUAN -->
                 <section class="tab-pane active" id="tab-dashboard">
@@ -211,7 +260,7 @@
                                     <span class="search-icon">🔍</span>
                                     <input type="text" id="search-apartment" placeholder="Tìm theo số căn, chủ hộ...">
                                 </div>
-                                <button class="btn btn-primary" id="btn-add-apartment">+ Thêm căn hộ mới</button>
+                                <button class="btn btn-primary" id="btn-add-apartment" data-roles="ADMIN,BAN_QUAN_TRI">+ Thêm căn hộ mới</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -247,7 +296,7 @@
                                     <span class="search-icon">🔍</span>
                                     <input type="text" id="search-resident" placeholder="Tìm họ tên, số CCCD, căn hộ...">
                                 </div>
-                                <button class="btn btn-primary" id="btn-add-resident">+ Khai báo cư dân mới</button>
+                                <button class="btn btn-primary" id="btn-add-resident" data-roles="ADMIN,BAN_QUAN_TRI">+ Khai báo cư dân mới</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -278,7 +327,7 @@
                         <div class="panel-header">
                             <div class="panel-title">📝 Đăng Ký Biến Động Cư Trú (Tạm Trú / Tạm Vắng)</div>
                             <div class="panel-actions">
-                                <button class="btn btn-primary" id="btn-add-temporary">+ Đăng ký tạm trú / tạm vắng</button>
+                                <button class="btn btn-primary" id="btn-add-temporary" data-roles="BAN_QUAN_TRI">+ Đăng ký tạm trú / tạm vắng</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -312,7 +361,7 @@
                                     <span class="search-icon">🔍</span>
                                     <input type="text" id="search-vehicle" placeholder="Tìm biển số, số căn...">
                                 </div>
-                                <button class="btn btn-primary" id="btn-add-vehicle">+ Đăng ký gửi xe mới</button>
+                                <button class="btn btn-primary" id="btn-add-vehicle" data-roles="ADMIN,BAN_QUAN_TRI">+ Đăng ký gửi xe mới</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -342,7 +391,7 @@
                         <div class="panel-header">
                             <div class="panel-title">🏷️ Cấu Hình Danh Mục Khoản Thu & Đơn Giá Động</div>
                             <div class="panel-actions">
-                                <button class="btn btn-primary" id="btn-add-fee">+ Thêm loại khoản thu</button>
+                                <button class="btn btn-primary" id="btn-add-fee" data-roles="ADMIN,BAN_QUAN_TRI">+ Thêm loại khoản thu</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -597,14 +646,63 @@
                                 <button class="btn btn-danger" id="btn-exec-restore">⚠️ Khôi phục CSDL</button>
                             </div>
                         </div>
-                <!-- 13. CỔNG DÀNH CHO CƯ DÂN / CHỦ HỘ (XEM PHÍ, HẠN NỘP & ĐÓNG TIỀN ONLINE) -->
+                    </div>
+                </section>
+
+                <!-- 12b. TAB QUẢN LÝ & DUYỆT ĐỀ XUẤT KIẾN NGHỊ CƯ DÂN (DÀNH CHO ADMIN & BAN QUẢN TRỊ) -->
+                <section class="tab-pane" id="tab-proposals">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">📩 Quản Lý & Duyệt Đề Xuất - Kiến Nghị Từ Các Phòng</div>
+                            <div class="panel-actions">
+                                <div class="filter-group">
+                                    <button class="btn btn-sm btn-outline active" onclick="filterAdminProposals('ALL', this)">Tất cả (<span id="count-prop-all">0</span>)</button>
+                                    <button class="btn btn-sm btn-outline" onclick="filterAdminProposals('CHO_DUYET', this)">⏳ Chờ duyệt (<span id="count-prop-pending">0</span>)</button>
+                                    <button class="btn btn-sm btn-outline" onclick="filterAdminProposals('DANG_XU_LY', this)">🔧 Đang xử lý</button>
+                                    <button class="btn btn-sm btn-outline" onclick="filterAdminProposals('DA_XU_LY', this)">✅ Đã hoàn thành</button>
+                                    <button class="btn btn-sm btn-outline" onclick="filterAdminProposals('TU_CHOI', this)">❌ Từ chối</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã YC</th>
+                                        <th>Căn Hộ</th>
+                                        <th>Người Gửi</th>
+                                        <th>Tiêu Đề Kiến Nghị</th>
+                                        <th>Phân Loại</th>
+                                        <th>Ngày Gửi</th>
+                                        <th>Trạng Thái</th>
+                                        <th>Phản Hồi BQT / Admin</th>
+                                        <th>Thao Tác Duyệt</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-proposals-tbody">
+                                    <!-- Nạp từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 13. CỔNG DÀNH CHO CƯ DÂN / CHỦ HỘ (XEM PHÍ, HẠN NỘP, NỘP TIỀN & ĐỀ XUẤT) -->
                 <section class="tab-pane" id="tab-resident-portal">
                     <!-- Banner thông tin căn hộ của cư dân -->
                     <div style="background: linear-gradient(135deg, #1e3a8a, #2563eb, #0ea5e9); color: white; padding: 26px 32px; border-radius: var(--radius-lg); margin-bottom: 24px; box-shadow: var(--shadow-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
                         <div>
                             <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; margin-bottom: 4px;">CỔNG THÔNG TIN CƯ DÂN CHUNG CƯ BLUE MOON</div>
                             <h2 style="font-size: 26px; font-weight: 800; margin-bottom: 6px;" id="res-apt-title">Căn hộ: A1205</h2>
-                            <p style="opacity: 0.95; font-size: 14px;" id="res-apt-desc">Chủ hộ: Nguyễn Văn An • Diện tích: 85.5 m² • Tầng: 12</p>
+                            <p style="opacity: 0.95; font-size: 14px; margin-bottom: 12px;" id="res-apt-desc">Chủ hộ: Nguyễn Văn An • Diện tích: 85.5 m² • Tầng: 12</p>
+                            <div class="res-action-btn-row">
+                                <button class="btn btn-sm btn-secondary" id="btn-open-modal-apt-info" style="background: rgba(255,255,255,0.22); color: white; border: 1px solid rgba(255,255,255,0.4); font-size: 12.5px; padding: 6px 14px;" onclick="openResidentApartmentModal()">
+                                    ✏️ Đăng ký / Sửa thông tin căn hộ
+                                </button>
+                                <button class="btn btn-sm btn-secondary" style="background: rgba(255,255,255,0.22); color: white; border: 1px solid rgba(255,255,255,0.4); font-size: 12.5px; padding: 6px 14px;" onclick="openResidentProposalModal()">
+                                    📩 Gửi đề xuất tới BQT
+                                </button>
+                            </div>
                         </div>
                         <div style="text-align: right; background: rgba(255,255,255,0.15); padding: 14px 20px; border-radius: var(--radius-md); backdrop-filter: blur(8px);">
                             <div style="font-size: 12px; opacity: 0.9;">Tổng số tiền cần thanh toán:</div>
@@ -700,6 +798,9 @@
                         <div class="panel-card">
                             <div class="panel-header">
                                 <div class="panel-title">👨‍👩‍👧‍👦 Thành Viên Gia Đình Đang Cư Trú</div>
+                                <div class="panel-actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openResidentMemberModal()">➕ Đăng ký thành viên</button>
+                                </div>
                             </div>
                             <div class="table-responsive">
                                 <table class="data-table">
@@ -721,6 +822,9 @@
                         <div class="panel-card">
                             <div class="panel-header">
                                 <div class="panel-title">🛵 Phương Tiện Đang Gửi Tại Tòa Nhà</div>
+                                <div class="panel-actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openResidentVehicleModal()">➕ Đăng ký gửi xe</button>
+                                </div>
                             </div>
                             <div class="table-responsive">
                                 <table class="data-table">
@@ -736,6 +840,34 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Bảng các yêu cầu & đề xuất của căn hộ gửi Ban Quản Trị -->
+                    <div class="panel-card" style="margin-top: 24px;">
+                        <div class="panel-header">
+                            <div class="panel-title">📩 Hộp Thư Đề Xuất & Kiến Nghị Của Căn Hộ Tới Ban Quản Trị</div>
+                            <div class="panel-actions">
+                                <button class="btn btn-primary" onclick="openResidentProposalModal()">➕ Gửi đề xuất / kiến nghị mới</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã YC</th>
+                                        <th>Tiêu Đề Kiến Nghị</th>
+                                        <th>Phân Loại</th>
+                                        <th>Thời Gian Gửi</th>
+                                        <th>Trạng Thái</th>
+                                        <th>Nội Dung Chi Tiết</th>
+                                        <th>Phản Hồi Từ Ban Quản Trị / Admin</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="res-proposals-tbody">
+                                    <!-- Nạp từ JS -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>
@@ -1233,6 +1365,10 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('modal-user')">Hủy bỏ</button>
                 <button class="btn btn-primary" id="btn-save-user">Tạo Tài Khoản</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL 11: CỔNG THANH TOÁN ONLINE VIETQR DÀNH CHO CƯ DÂN -->
     <div class="modal-backdrop" id="modal-resident-pay">
         <div class="modal-dialog">
@@ -1280,6 +1416,468 @@
                 <button class="btn btn-success" id="btn-confirm-online-paid">
                     ✅ Tôi Đã Chuyển Khoản Xong (Xác Nhận)
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL ĐĂNG NHẬP & ĐĂNG KÝ TÀI KHOẢN (AUTH MODAL) -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="modal-auth">
+        <div class="modal-dialog auth-dialog">
+            <div class="auth-card-header">
+                <div class="auth-logo-row">
+                    <div class="auth-logo-icon">🏢</div>
+                    <div>
+                        <h2 class="auth-brand-title">BLUE MOON BUILDING</h2>
+                        <div class="auth-brand-subtitle">Hệ Thống Quản Lý Thu Phí & Cư Dân (BMFM)</div>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeModal('modal-auth')" id="btn-close-auth-modal">&times;</button>
+            </div>
+
+            <!-- Tab Switcher: Đăng nhập vs Đăng ký -->
+            <div class="auth-tab-bar">
+                <button class="auth-tab-btn active" id="btn-tab-login" onclick="switchAuthTab('login')">🔑 Đăng Nhập</button>
+                <button class="auth-tab-btn" id="btn-tab-register" onclick="switchAuthTab('register')">📝 Đăng Ký Cư Dân Mới</button>
+            </div>
+
+            <!-- PHẦN 1: FORM ĐĂNG NHẬP -->
+            <div class="auth-tab-content active" id="auth-content-login">
+                <form id="form-login" onsubmit="event.preventDefault(); handleLoginSubmit();">
+                    <div class="form-group">
+                        <label class="form-label">Tên đăng nhập *</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">👤</span>
+                            <input type="text" class="form-control" id="login-username" placeholder="Ví dụ: admin, ketoan_minh, cudan_a1205" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu *</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" class="form-control" id="login-password" placeholder="Nhập mật khẩu của bạn" required>
+                            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('login-password')">👁️</button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-submit-login" style="margin-top: 18px; width: 100%;">
+                        🚀 Đăng Nhập Ngay
+                    </button>
+                </form>
+
+                <!-- 1-Click Fast Login Buttons -->
+                <div class="quick-login-section">
+                    <div class="quick-login-title">
+                        <span>⚡ ĐĂNG NHẬP NHANH 1-CLICK (KIỂM THỬ ĐỒ ÁN)</span>
+                    </div>
+                    <div class="quick-login-grid">
+                        <button class="quick-btn admin" type="button" onclick="quickLogin('admin', 'admin123')">
+                            <span class="q-icon">👑</span>
+                            <div class="q-info">
+                                <span class="q-name">Admin</span>
+                                <span class="q-role">Toàn quyền hệ thống</span>
+                            </div>
+                        </button>
+                        <button class="quick-btn bqt" type="button" onclick="quickLogin('bqt_truongban', 'bqt123')">
+                            <span class="q-icon">🏢</span>
+                            <div class="q-info">
+                                <span class="q-name">Ban Quản Trị</span>
+                                <span class="q-role">Quản lý dân cư, xe</span>
+                            </div>
+                        </button>
+                        <button class="quick-btn ketoan" type="button" onclick="quickLogin('ketoan_minh', 'ketoan123')">
+                            <span class="q-icon">💼</span>
+                            <div class="q-info">
+                                <span class="q-name">Kế Toán</span>
+                                <span class="q-role">Lập đợt thu, biên lai</span>
+                            </div>
+                        </button>
+                        <button class="quick-btn cudan" type="button" onclick="quickLogin('cudan_a1205', '123456')">
+                            <span class="q-icon">🏡</span>
+                            <div class="q-info">
+                                <span class="q-name">Cư Dân A1205</span>
+                                <span class="q-role">Nguyễn Văn An (VietQR)</span>
+                            </div>
+                        </button>
+                        <button class="quick-btn cudan" type="button" onclick="quickLogin('cudan_b1104', '123456')">
+                            <span class="q-icon">🏡</span>
+                            <div class="q-info">
+                                <span class="q-name">Cư Dân B1104</span>
+                                <span class="q-role">Trịnh Ngọc Quý (Tháp B)</span>
+                            </div>
+                        </button>
+                        <button class="quick-btn cudan warning" type="button" onclick="quickLogin('cudan_b0402', '123456')">
+                            <span class="q-icon">⚠️</span>
+                            <div class="q-info">
+                                <span class="q-name">Cư Dân B0402</span>
+                                <span class="q-role">Phạm Quỳnh Nga (Còn nợ)</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PHẦN 2: FORM ĐĂNG KÝ TÀI KHOẢN CƯ DÂN -->
+            <div class="auth-tab-content" id="auth-content-register">
+                <form id="form-register" onsubmit="event.preventDefault(); handleRegisterSubmit();">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Tên đăng nhập mới *</label>
+                            <input type="text" class="form-control" id="reg-username" placeholder="Ví dụ: cudan_b0601" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Họ và tên chủ hộ / Cư dân *</label>
+                            <input type="text" class="form-control" id="reg-fullname" placeholder="Ví dụ: Trần Trọng Nghĩa" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Mật khẩu (ít nhất 6 ký tự) *</label>
+                            <input type="password" class="form-control" id="reg-password" placeholder="••••••••" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nhập lại mật khẩu *</label>
+                            <input type="password" class="form-control" id="reg-password-confirm" placeholder="••••••••" required minlength="6">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Căn hộ cư trú *</label>
+                            <select class="form-control" id="reg-apartment" required>
+                                <option value="">-- Đang nạp danh sách căn hộ... --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Số điện thoại liên hệ *</label>
+                            <input type="tel" class="form-control" id="reg-phone" placeholder="09xxxxxxxx" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Số CCCD / Định danh cá nhân (12 chữ số)</label>
+                        <input type="text" class="form-control" id="reg-cccd" placeholder="001090xxxxxx">
+                    </div>
+
+                    <div style="background: var(--bg-subtle); padding: 12px 14px; border-radius: var(--radius-md); font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px; border-left: 3px solid var(--primary);">
+                        ℹ️ <strong>Quy định bảo mật:</strong> Sau khi đăng ký thành công, tài khoản sẽ được cấp quyền <strong>CƯ DÂN</strong>. Bạn chỉ có quyền xem thông tin căn hộ, xe cộ, thành viên gia đình mình, đóng tiền qua VietQR 24/7 và tải biên lai.
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-block btn-lg" id="btn-submit-register" style="width: 100%;">
+                        ✨ Hoàn Tất Đăng Ký Tài Khoản
+                    </button>
+
+                    <div style="text-align: center; margin-top: 14px; font-size: 13px;">
+                        <span>Đã có tài khoản? </span>
+                        <a href="javascript:void(0)" onclick="switchAuthTab('login')" style="color: var(--primary); font-weight: 600; text-decoration: underline;">Đăng nhập ngay</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 12: CẬP NHẬT THÔNG TIN CĂN HỘ CỦA CƯ DÂN -->
+    <div class="modal-backdrop" id="modal-resident-apartment">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">✏️ Cập Nhật Thông Tin Căn Hộ Cư Trú</h3>
+                <button class="modal-close" onclick="closeModal('modal-resident-apartment')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-resident-apt" onsubmit="event.preventDefault(); handleUpdateResidentApartment();">
+                    <input type="hidden" id="res-apt-id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Số căn hộ</label>
+                            <input type="text" class="form-control" id="res-apt-code" readonly style="background: var(--bg-subtle); font-weight: bold;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Diện tích sàn (m²)</label>
+                            <input type="text" class="form-control" id="res-apt-area" readonly style="background: var(--bg-subtle);">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Họ và tên chủ hộ đại diện</label>
+                        <input type="text" class="form-control" id="res-apt-owner" placeholder="Nguyễn Văn An" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại liên hệ chính thức *</label>
+                        <input type="tel" class="form-control" id="res-apt-phone" placeholder="09xxxxxxx" required>
+                        <small style="color: var(--text-muted); font-size: 12px;">Số điện thoại để BQT và kế toán gửi thông báo phí, hóa đơn điện tử.</small>
+                    </div>
+                    <div class="modal-footer" style="padding: 16px 0 0 0;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-resident-apartment')">Đóng</button>
+                        <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 13: ĐĂNG KÝ THÀNH VIÊN GIA ĐÌNH -->
+    <div class="modal-backdrop" id="modal-resident-member">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">👨‍👩‍👧‍👦 Đăng Ký Thành Viên Gia Đình Đang Cư Trú</h3>
+                <button class="modal-close" onclick="closeModal('modal-resident-member')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-resident-member" onsubmit="event.preventDefault(); handleAddResidentMember();">
+                    <div class="form-group">
+                        <label class="form-label">Họ và tên thành viên mới *</label>
+                        <input type="text" class="form-control" id="res-mem-name" placeholder="Ví dụ: Nguyễn Minh Thư" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Quan hệ với chủ hộ *</label>
+                            <select class="form-control" id="res-mem-relation" required>
+                                <option value="Vợ">Vợ</option>
+                                <option value="Chồng">Chồng</option>
+                                <option value="Con">Con</option>
+                                <option value="Bố">Bố / Cha</option>
+                                <option value="Mẹ">Mẹ</option>
+                                <option value="Anh/Chị/Em">Anh / Chị / Em</option>
+                                <option value="Người thân">Người thân / Ở cùng</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Giới tính *</label>
+                            <select class="form-control" id="res-mem-gender" required>
+                                <option value="NAM">Nam</option>
+                                <option value="NU">Nữ</option>
+                                <option value="KHAC">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Ngày tháng năm sinh *</label>
+                            <input type="date" class="form-control" id="res-mem-dob" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Số CCCD / Mã định danh</label>
+                            <input type="text" class="form-control" id="res-mem-cccd" placeholder="12 chữ số CCCD">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại liên hệ</label>
+                        <input type="tel" class="form-control" id="res-mem-phone" placeholder="09xxxxxxx">
+                    </div>
+                    <div class="modal-footer" style="padding: 16px 0 0 0;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-resident-member')">Đóng</button>
+                        <button type="submit" class="btn btn-primary">Xác Nhận Đăng Ký</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 14: ĐĂNG KÝ GỬI XE (Ô TÔ / XE MÁY) -->
+    <div class="modal-backdrop" id="modal-resident-vehicle">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">🚗 Đăng Ký Gửi Phương Tiện (Ô Tô / Xe Máy)</h3>
+                <button class="modal-close" onclick="closeModal('modal-resident-vehicle')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-resident-vehicle" onsubmit="event.preventDefault(); handleAddResidentVehicle();">
+                    <div class="form-group">
+                        <label class="form-label">Loại phương tiện đăng ký gửi *</label>
+                        <select class="form-control" id="res-veh-type" required>
+                            <option value="O_TO">🚗 Ô tô (Biểu phí: 1.200.000 đ/tháng)</option>
+                            <option value="XE_MAY" selected>🛵 Xe máy (Biểu phí: 70.000 đ/tháng)</option>
+                            <option value="XE_DAP_DIEN">🚲 Xe đạp điện (Biểu phí: 40.000 đ/tháng)</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Biển kiểm soát xe (Biển số) *</label>
+                            <input type="text" class="form-control" id="res-veh-plate" placeholder="Ví dụ: 30K-987.65" required style="text-transform: uppercase;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Hãng xe & Màu sắc</label>
+                            <input type="text" class="form-control" id="res-veh-model" placeholder="Ví dụ: Honda SH Đen / Mazda 3 Trắng">
+                        </div>
+                    </div>
+                    <div style="background: var(--bg-subtle); padding: 12px; border-radius: var(--radius-md); font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px;">
+                        ℹ️ Sau khi đăng ký thành công, mức phí gửi xe tương ứng sẽ được tự động cộng vào đợt thu phí định kỳ của căn hộ.
+                    </div>
+                    <div class="modal-footer" style="padding: 16px 0 0 0;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-resident-vehicle')">Đóng</button>
+                        <button type="submit" class="btn btn-primary">Xác Nhận Đăng Ký Xe</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 15: GỬI ĐỀ XUẤT / KIẾN NGHỊ TỚI BQT -->
+    <div class="modal-backdrop" id="modal-resident-proposal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">📩 Gửi Đề Xuất / Kiến Nghị Tới Ban Quản Trị</h3>
+                <button class="modal-close" onclick="closeModal('modal-resident-proposal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-resident-proposal" onsubmit="event.preventDefault(); handleAddResidentProposal();">
+                    <div class="form-group">
+                        <label class="form-label">Tiêu đề kiến nghị / đề xuất *</label>
+                        <input type="text" class="form-control" id="res-prop-title" placeholder="Ví dụ: Đề nghị thay bóng đèn hành lang tầng 12..." required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Phân loại lĩnh vực *</label>
+                            <select class="form-control" id="res-prop-type" required>
+                                <option value="SUA_CHUA">🔧 Sửa chữa kỹ thuật / Điện nước</option>
+                                <option value="VE_SINH">🧹 Vệ sinh môi trường / Cảnh quan</option>
+                                <option value="AN_NINH">🛡️ An ninh trật tự / Bảo vệ</option>
+                                <option value="THU_PHI">💰 Thu phí & Hóa đơn dịch vụ</option>
+                                <option value="TIEN_ICH">🛗 Tiện ích / Cấp thẻ cư dân</option>
+                                <option value="KHAC">📝 Đề xuất ý kiến khác</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Người gửi đại diện</label>
+                            <input type="text" class="form-control" id="res-prop-sender" readonly style="background: var(--bg-subtle);">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nội dung chi tiết kiến nghị *</label>
+                        <textarea class="form-control" id="res-prop-content" rows="4" placeholder="Mô tả cụ thể vị trí, vấn đề gặp phải hoặc ý kiến đóng góp cho Ban Quản Trị..." required></textarea>
+                    </div>
+                    <div class="modal-footer" style="padding: 16px 0 0 0;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-resident-proposal')">Đóng</button>
+                        <button type="submit" class="btn btn-primary">Gửi Kiến Nghị Ngay</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 16: ADMIN / BQT DUYỆT & PHẢN HỒI KIẾN NGHỊ -->
+    <div class="modal-backdrop" id="modal-review-proposal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">⚖️ Duyệt & Phản Hồi Đề Xuất Cư Dân</h3>
+                <button class="modal-close" onclick="closeModal('modal-review-proposal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="rev-prop-id">
+                <div style="background: var(--bg-subtle); padding: 14px 18px; border-radius: var(--radius-md); margin-bottom: 18px; font-size: 13.5px; line-height: 1.6;">
+                    <div><strong>Căn hộ gửi:</strong> <span id="rev-prop-apt" style="color:var(--primary); font-weight:700;">A1205</span> (<span id="rev-prop-sender">Nguyễn Văn An</span>)</div>
+                    <div><strong>Ngày gửi:</strong> <span id="rev-prop-date">--</span></div>
+                    <div><strong>Tiêu đề:</strong> <span id="rev-prop-title" style="font-weight:700;">--</span></div>
+                    <div style="margin-top: 6px; padding: 10px; background: white; border: 1px solid var(--border-color); border-radius: 6px;" id="rev-prop-content">--</div>
+                </div>
+
+                <form id="form-review-proposal" onsubmit="event.preventDefault(); handleSaveProposalReview();">
+                    <div class="form-group">
+                        <label class="form-label">Trạng thái phê duyệt *</label>
+                        <select class="form-control" id="rev-prop-status" required>
+                            <option value="DA_DUYET">🟢 Duyệt & Tiếp nhận xử lý</option>
+                            <option value="DANG_XU_LY">🔧 Đang triển khai / Xử lý kỹ thuật</option>
+                            <option value="DA_XU_LY">✅ Đã hoàn thành / Xử lý xong</option>
+                            <option value="TU_CHOI">❌ Từ chối kiến nghị (kèm lý do)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nội dung phản hồi chính thức gửi cư dân *</label>
+                        <textarea class="form-control" id="rev-prop-reply" rows="3" placeholder="Nhập câu trả lời hoặc biện pháp giải quyết của Ban Quản Trị..." required></textarea>
+                    </div>
+                    <div class="modal-footer" style="padding: 16px 0 0 0;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-review-proposal')">Đóng</button>
+                        <button type="submit" class="btn btn-primary">Lưu Kết Quả Phê Duyệt</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 17: XUẤT HÓA ĐƠN ĐIỆN TỬ ONLINE CHUẨN LASER A5 -->
+    <div class="modal-backdrop" id="modal-invoice-preview">
+        <div class="modal-dialog" style="max-width: 720px;">
+            <div class="modal-header">
+                <h3 class="modal-title">📄 Hóa Đơn Điện Tử Trực Tuyến (E-Invoice)</h3>
+                <button class="modal-close" onclick="closeModal('modal-invoice-preview')">&times;</button>
+            </div>
+            <div class="modal-body" style="background: #f8fafc; padding: 24px;">
+                <div class="e-invoice-card" id="printable-invoice">
+                    <div class="e-invoice-header">
+                        <div>
+                            <div style="font-size: 13px; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">BAN QUẢN LÝ TÒA NHÀ CHUNG CƯ BLUE MOON</div>
+                            <div class="e-invoice-sub">Địa chỉ: KĐT Blue Moon, Nam Từ Liêm, Hà Nội • Hotline: 1900-8888</div>
+                            <div class="e-invoice-sub">Mã số thuế: 0109887766 • Email: bqtbluemoon@gmail.com</div>
+                        </div>
+                        <div class="e-invoice-code">
+                            <div><strong>Ký hiệu:</strong> <code>BM-2026/01E</code></div>
+                            <div><strong>Mã HĐ:</strong> <code id="inv-code" style="color:#2563eb; font-weight:bold;">PT-202611-0001</code></div>
+                            <div style="font-size: 11.5px; color:#64748b;" id="inv-date">Ngày: 19/10/2026</div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin: 18px 0 22px 0;">
+                        <h2 style="font-size: 20px; font-weight: 800; color: #1e3a8a; margin-bottom: 4px;">HÓA ĐƠN GIÁ TRỊ GIA TĂNG (ĐIỆN TỬ)</h2>
+                        <div style="font-size: 12.5px; color: #64748b;">(Kiêm Biên lai thu tiền dịch vụ chung cư trực tuyến)</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13.5px; margin-bottom: 18px; background: #f1f5f9; padding: 12px 16px; border-radius: 6px;">
+                        <div><strong>Khách hàng / Cư dân:</strong> <span id="inv-customer">Nguyễn Văn An</span></div>
+                        <div><strong>Căn hộ cư trú:</strong> <span id="inv-apartment" style="font-weight: bold; color: #2563eb;">A1205</span></div>
+                        <div><strong>Hình thức thanh toán:</strong> <span id="inv-method" style="font-weight: 600; color: #16a34a;">Chuyển khoản VietQR 24/7</span></div>
+                        <div><strong>Kỳ thu phí:</strong> <span id="inv-period">Tháng 11/2026</span></div>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px; margin-bottom: 18px;">
+                        <thead>
+                            <tr style="background: #e2e8f0; text-align: left;">
+                                <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">STT</th>
+                                <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Tên Khoản Thu / Dịch Vụ</th>
+                                <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Đơn Vị Tính</th>
+                                <th style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: right;">Thành Tiền (VNĐ)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1;">1</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1;" id="inv-fee-name">Phí quản lý vận hành tòa nhà</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1;">Tháng</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #1e3a8a;" id="inv-amount">598.500 đ</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #f8fafc; font-weight: bold;">
+                                <td colspan="3" style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">TỔNG CỘNG TIỀN THANH TOÁN:</td>
+                                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right; font-size: 16px; color: #dc2626;" id="inv-total">598.500 đ</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div style="font-size: 13px; font-style: italic; color: #475569; margin-bottom: 24px;">
+                        Số tiền viết bằng chữ: <strong id="inv-words">Năm trăm chín mươi tám nghìn năm trăm đồng chẵn.</strong>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; text-align: center; font-size: 13px; margin-top: 20px;">
+                        <div>
+                            <strong>NGƯỜI NỘP TIỀN</strong>
+                            <div style="font-size: 11px; color:#64748b;">(Ký, ghi rõ họ tên)</div>
+                            <div style="margin-top: 40px; font-weight: 600;" id="inv-payer-sign">Nguyễn Văn An</div>
+                        </div>
+                        <div style="position: relative;">
+                            <strong>ĐẠI DIỆN BAN QUẢN LÝ TÒA NHÀ</strong>
+                            <div style="font-size: 11px; color:#64748b;">(Ký điện tử & Đóng dấu)</div>
+                            <div class="e-invoice-stamp">
+                                ✔ ĐÃ XÁC THỰC THANH TOÁN<br>VIETQR 24/7 NAPAS
+                            </div>
+                            <div style="margin-top: 40px; font-weight: 600; color: #1e3a8a;">BQT CHUNG CƯ BLUE MOON</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-invoice-preview')">Đóng</button>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ In Hóa Đơn (Laser)</button>
             </div>
         </div>
     </div>
